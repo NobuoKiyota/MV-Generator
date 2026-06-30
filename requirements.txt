@@ -5,3 +5,6 @@ librosa
 soundfile
 moviepy==1.0.3
 google-genai
+diffusers
+transformers<5.0.0
+accelerate

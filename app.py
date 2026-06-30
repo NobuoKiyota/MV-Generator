@@ -103,7 +103,7 @@ if project_file is not None:
             st.session_state.lyrics = "\n".join(reconstructed_lyrics).strip()
         elif project_file.name.endswith(".zip"):
             # ZIPパッケージファイルのロード
-            images_dir = "z:\\mv-generator\\assets\\images"
+            images_dir = "assets/images"
             extract_dir = tempfile.mkdtemp()
             try:
                 project_data = import_project_zip(
@@ -163,7 +163,7 @@ if st.session_state.timeline_data:
                 bpm=st.session_state.bpm,
                 duration=st.session_state.duration,
                 audio_path=st.session_state.get("audio_path"),
-                images_dir="z:\\mv-generator\\assets\\images"
+                images_dir="assets/images"
             )
             st.download_button(
                 label="📥 ZIP保存",
@@ -238,8 +238,8 @@ with tab1:
         
         if audio_file is not None:
             # 音源ファイルをローカルのassetsに永続保存
-            os.makedirs("z:\\mv-generator\\assets", exist_ok=True)
-            saved_audio_path = os.path.join("z:\\mv-generator\\assets", f"audio_{audio_file.name}")
+            os.makedirs("assets", exist_ok=True)
+            saved_audio_path = os.path.join("assets", f"audio_{audio_file.name}")
             if "audio_path" not in st.session_state or st.session_state.audio_path != saved_audio_path:
                 with open(saved_audio_path, "wb") as f:
                     f.write(audio_file.getbuffer())
@@ -263,10 +263,12 @@ with tab1:
                         st.error("音源の解析に失敗しました。")
         
         manual_bpm = st.number_input("テンポ (BPM) 手動調整", min_value=1.0, max_value=300.0, value=st.session_state.bpm, step=0.1)
-        st.session_state.bpm = manual_bpm
+        if st.session_state.bpm != manual_bpm:
+            st.session_state.bpm = manual_bpm
         
         manual_duration = st.number_input("曲の長さ (秒) 手動調整", min_value=1.0, max_value=600.0, value=st.session_state.duration, step=1.0)
-        st.session_state.duration = manual_duration
+        if st.session_state.duration != manual_duration:
+            st.session_state.duration = manual_duration
         
     st.markdown("---")
     
@@ -327,8 +329,11 @@ with tab2:
             }
         )
         
-        # 編集結果をセッションに書き戻す
-        st.session_state.timeline_data = edited_df.to_dict(orient="records")
+        # 編集結果をセッションに書き戻す (無限ループ防止のため、値が変更された場合のみ更新)
+        new_timeline_data = edited_df.to_dict(orient="records")
+        if st.session_state.timeline_data != new_timeline_data:
+            st.session_state.timeline_data = new_timeline_data
+            st.rerun()
         
         st.subheader("🔍 現在の絵コンテ確認用プレビュー")
         for i, cut in enumerate(st.session_state.timeline_data):
@@ -344,8 +349,8 @@ with tab3:
         st.info("新規作成タブでタイムラインを作成するか、プロジェクトファイルを読み込んでください。")
     else:
         # パス設定
-        images_dir = "z:\\mv-generator\\assets\\images"
-        output_video_path = "z:\\mv-generator\\assets\\demo_mv.mp4"
+        images_dir = "assets/images"
+        output_video_path = "assets/demo_mv.mp4"
         os.makedirs(images_dir, exist_ok=True)
         
         col_ctrl, col_view = st.columns([1, 2])

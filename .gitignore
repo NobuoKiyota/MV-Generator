@@ -19,3 +19,8 @@ scratch/
 # OS specific
 .DS_Store
 Thumbs.db
+
+# Models & temp files
+models/
+test_gen_cut0.py
+

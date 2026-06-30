@@ -22,16 +22,30 @@ def generate_imagen_image(prompt, output_path, api_key=None):
             
             if _sd_pipeline is None:
                 from diffusers import StableDiffusionPipeline
-                print("Loading local Stable Diffusion model (Lykon/dreamshaper-8)...")
-                model_id = "Lykon/dreamshaper-8"
-                _sd_pipeline = StableDiffusionPipeline.from_pretrained(
-                    model_id,
-                    torch_dtype=torch.float16,
-                    safety_checker=None  # VRAM/メモリ節約と生成速度向上のため
-                )
+                
+                local_model_path = os.path.join("models", "dreamshaper_8.safetensors")
+                if os.path.exists(local_model_path):
+                    print(f"Found local model file at {local_model_path}. Loading offline...")
+                    _sd_pipeline = StableDiffusionPipeline.from_single_file(
+                        local_model_path,
+                        torch_dtype=torch.float16,
+                        safety_checker=None
+                    )
+                    print("Local Stable Diffusion model loaded from .safetensors successfully!")
+                else:
+                    from huggingface_hub import enable_progress_bars
+                    enable_progress_bars()  # ダウンロード進捗をプロンプト画面に強制表示
+                    print(f"Local file not found at {local_model_path}. Downloading from Hugging Face...")
+                    model_id = "Lykon/dreamshaper-8"
+                    _sd_pipeline = StableDiffusionPipeline.from_pretrained(
+                        model_id,
+                        torch_dtype=torch.float16,
+                        safety_checker=None  # VRAM/メモリ節約と生成速度向上のため
+                    )
+                    print("Local Stable Diffusion model loaded on GPU successfully!")
+                
                 _sd_pipeline = _sd_pipeline.to("cuda")
                 _sd_pipeline.enable_attention_slicing()  # メモリ節約モード
-                print("Local Stable Diffusion model loaded on GPU successfully!")
                 
             print(f"Generating image on GPU with prompt: {prompt}")
             # 16:9 (1024x576) で生成
