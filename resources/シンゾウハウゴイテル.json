@@ -1,0 +1,431 @@
+{
+  "project_name": "シンゾウハウゴイテル",
+  "bpm": 190.0,
+  "duration": 209.41,
+  "timeline": [
+    {
+      "section": "Intro",
+      "start_time": 0.0,
+      "end_time": 3.766,
+      "lyrics": "",
+      "description": "荒廃した都市の風景。錆びた鉄骨やひび割れたコンクリートが広がる。カメラはゆっくりとズームアウトし、その広大さと寂寥感を強調する。全体的に彩度の低い、冷たい色調。",
+      "prompt": "Cinematic wide shot of a desolate, decaying urban landscape, rusted steel structures, cracked concrete, muted cool tones, slow zoom out, gritty texture, dramatic lighting, 16:9 aspect ratio, hyper-realistic, high detail."
+    },
+    {
+      "section": "Intro",
+      "start_time": 3.766,
+      "end_time": 6.289,
+      "lyrics": "",
+      "description": "主人公が背中を向けて、荒涼とした通りを歩いていく。足元は重く、肩を落としている。カメラは主人公の後ろを追うようにゆっくりと移動する。逆光でシルエットが強調される。",
+      "prompt": "Cinematic shot from behind, a young, gender-neutral protagonist with punk/alternative aesthetic walking slowly down a desolate, gritty urban street, shoulders slumped, backlit silhouette, muted cool tones, slow tracking shot, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Intro",
+      "start_time": 6.289,
+      "end_time": 7.55,
+      "lyrics": "",
+      "description": "主人公の手のクローズアップ。拳を固く握りしめ、爪が食い込んでいる。手の甲には傷跡が見える。手持ちカメラで微かに揺れる。",
+      "prompt": "Extreme close-up, shaky handheld camera, young protagonist's hands tightly clenched, fingernails digging into palms, visible scars on knuckles, gritty texture, desaturated cool tones, dramatic lighting, hyper-realistic, 16:9 aspect ratio."
+    },
+    {
+      "section": "Intro",
+      "start_time": 7.55,
+      "end_time": 10.583,
+      "lyrics": "",
+      "description": "退屈で抑圧的な日常のフラッシュモンタージュ。満員電車、無表情な人々、監視カメラ、同じようなビル群。カットは速く、視覚的な情報が洪水のように押し寄せる。",
+      "prompt": "Rapid-fire montage of oppressive daily life: crowded train, emotionless faces, surveillance cameras, endless identical buildings, desaturated, cold tones, fast cuts, gritty urban aesthetic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Intro",
+      "start_time": 10.583,
+      "end_time": 11.373,
+      "lyrics": "",
+      "description": "ブレークトランジション。IntroからVerse1へ移行するインパクトが欲しい",
+      "prompt": ""
+    },
+    {
+      "section": "Verse 1",
+      "start_time": 11.373,
+      "end_time": 13.4,
+      "lyrics": "届かない 響かない",
+      "description": "主人公が狭く殺風景な部屋の窓から外を眺めている。窓の外は灰色の空。部屋の中は薄暗く、孤独感が漂う。カメラは部屋の隅から主人公を捉える。",
+      "prompt": "Cinematic shot, young protagonist looking out a window from a small, sterile, dimly lit room, gray sky outside, sense of solitude, desaturated cool tones, wide shot from a corner, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Verse 1",
+      "start_time": 13.4,
+      "end_time": 16.421,
+      "lyrics": "耳を閉ざす 心を閉ざす",
+      "description": "主人公の目のクローズアップ。無表情の中に一瞬、反抗的な光が宿る。瞳に映る窓の外の景色が歪んで見える。",
+      "prompt": "Extreme close-up on young protagonist's expressive eyes, a flicker of defiance in their gaze, distorted reflection of a gray urban landscape in their pupils, desaturated cool tones, sharp focus, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Verse 1",
+      "start_time": 16.421,
+      "end_time": 19.276,
+      "lyrics": "あの子は あいつがいいんだな",
+      "description": "フラッシュバックまたは想像のシーン。幸せそうなカップルが笑い合っている。主人公は遠くからそれを見ており、疎外感を感じている。暖色系のフィルターがかかっているが、主人公の視点では少し色褪せて見える。",
+      "prompt": "Flashback scene, a happy couple laughing together in warm, slightly faded tones, young protagonist observing from a distance, feeling isolated, shallow depth of field, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Verse 1",
+      "start_time": 19.276,
+      "end_time": 21.74,
+      "lyrics": "罪悪感はほんの一瞬",
+      "description": "主人公が再び拳を握りしめ、顔には抑えきれない苛立ちが浮かぶ。カメラは下から煽るように捉え、圧迫感を表現。",
+      "prompt": "Low-angle close-up on young protagonist's face, fists clenched, visible frustration and suppressed anger, desaturated cool tones with hints of red, intense dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Pre-Chorus 1",
+      "start_time": 21.74,
+      "end_time": 24.315,
+      "lyrics": "おい！ 大きく息を吸い込んで",
+      "description": "主人公が大きく息を吸い込む。胸が大きく上下し、苦しそうに見える。手持ちカメラでわずかに揺れ、息遣いの荒さを表現。",
+      "prompt": "Close-up on young protagonist's face and chest, taking a deep, ragged breath, chest heaving, visible struggle, shaky handheld camera, desaturated cool tones, dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Pre-Chorus 1",
+      "start_time": 24.315,
+      "end_time": 26.78,
+      "lyrics": "ぐっと止めて",
+      "description": "息を止める主人公の顔。血管が浮き出て、極限の緊張状態にあることを示す。超クローズアップで、汗がにじむ。",
+      "prompt": "Extreme close-up on young protagonist's face, holding breath, veins slightly bulging, beads of sweat on forehead, intense tension, desaturated cool tones, sharp focus, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Pre-Chorus 1",
+      "start_time": 26.78,
+      "end_time": 29.3,
+      "lyrics": "バーーっと吐き出して",
+      "description": "主人公が勢いよく息を吐き出す。口から白い息が勢いよく出る（CGで強調）。カメラは一瞬、主人公に勢いよく寄る。色調にわずかに暖色が混ざり始める。",
+      "prompt": "Dynamic push-in close-up on young protagonist exhaling forcefully, visible burst of white breath (CGI enhanced), slight shift to warmer tones, intense dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Pre-Chorus 1",
+      "start_time": 29.3,
+      "end_time": 31.9,
+      "lyrics": "けじめはきっちりつけるんだ",
+      "description": "主人公が何か見えない鎖を断ち切るように、腕を振り下ろす。表情は決意に満ちている。カメラはローアングルから力強く捉える。",
+      "prompt": "Low-angle shot, young protagonist making a determined gesture, like breaking an invisible chain, resolute expression, dynamic movement, desaturated cool tones with strong red highlights, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Chorus 1",
+      "start_time": 31.9,
+      "end_time": 36.94,
+      "lyrics": "心臓は動いてる 心臓は動いてる",
+      "description": "主人公が都市の狭い路地を走り出す。カメラは主人公を追いかけ、疾走感を強調。背景の都市はまだ灰色だが、主人公の動きには生命力があふれている。手持ちカメラで臨場感を出す。",
+      "prompt": "Dynamic tracking shot, young protagonist running through narrow, gritty urban alleys, fast-paced, sense of urgency, desaturated cool tones, handheld camera, motion blur, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Chorus 1",
+      "start_time": 36.94,
+      "end_time": 41.98,
+      "lyrics": "悔しさも切なさも飲み込んで",
+      "description": "主人公の顔のクローズアップ。汗と涙が混じり合い、苦痛と決意が入り混じった表情。過去の悔しさや切なさのフラッシュバックが瞬間的に挿入される（非常に短いカット）。",
+      "prompt": "Close-up on young protagonist's face, sweat and tears, mixed expression of pain and determination, quick, desaturated flashbacks of past regrets, dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Chorus 1",
+      "start_time": 41.98,
+      "end_time": 46.02,
+      "lyrics": "心臓は動いてる 心臓は動いてる",
+      "description": "主人公がビルの屋上や開けた場所に出る。空を見上げ、カメラはゆっくりと引いていく。都市の広がりと主人公の小ささが対比される。空にはわずかに夕焼けの色が差し込む。",
+      "prompt": "Cinematic wide shot, young protagonist standing on a high rooftop, looking up at the sky, camera slowly pulling back, vast urban landscape below, subtle hints of sunset colors in the sky, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Chorus 1",
+      "start_time": 46.02,
+      "end_time": 51.29,
+      "lyrics": "カウントダウン始まった 爆発寸前だ！",
+      "description": "感情の爆発を表現するモンタージュ。主人公が叫ぶ（声は聞こえない）、画面に赤やオレンジの鮮やかな光がフラッシュする。都市の風景が歪み、ひび割れていくような視覚効果。カットは非常に速い。",
+      "prompt": "Rapid-fire montage, young protagonist screaming silently, vibrant red and orange light flashes, urban landscape distorting and cracking visually, explosive emotional release, high contrast, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Guitar Solo 1",
+      "start_time": 51.29,
+      "end_time": 54.0,
+      "lyrics": "",
+      "description": "主人公がエアギターを弾くかのように、音楽に合わせて体を激しく動かす。カメラは主人公の周りをダイナミックに動き、エネルギーを捉える。背景はまだ都市だが、光の当たり方が少し明るい。",
+      "prompt": "Dynamic tracking shot, young protagonist passionately air-guitaring or dancing to the music, energetic movement, urban background with brighter, natural light, punk/alternative aesthetic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Guitar Solo 1",
+      "start_time": 54.0,
+      "end_time": 56.5,
+      "lyrics": "",
+      "description": "都市の風景のクイックカット。しかし、以前のような抑圧感はなく、可能性を秘めた場所として描かれる。光が差し込む路地、壁に描かれたグラフィティなど。",
+      "prompt": "Quick cuts of urban scenes, now with a sense of potential and natural light: sunlit alleyways, vibrant graffiti on walls, less oppressive, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Guitar Solo 1",
+      "start_time": 56.5,
+      "end_time": 59.0,
+      "lyrics": "",
+      "description": "主人公がカメラをまっすぐ見つめる。挑戦的で、何かを訴えかけるような強い眼差し。わずかに口元に笑みが浮かぶ。",
+      "prompt": "Close-up on young protagonist's face, direct eye contact with the camera, challenging and expressive gaze, subtle hint of a smirk, dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Verse 2",
+      "start_time": 59.0,
+      "end_time": 101.52,
+      "lyrics": "さよならはいつもたくさんの嘘",
+      "description": "主人公が散らばった紙や物を前に、薄暗い部屋に座っている。それらは「嘘」の象徴。部屋は再び冷たいトーンに戻る。",
+      "prompt": "Young protagonist sitting in a dimly lit, cold-toned room, surrounded by scattered papers and objects symbolizing lies, pensive expression, desaturated, gritty aesthetic, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Verse 2",
+      "start_time": 101.52,
+      "end_time": 104.04,
+      "lyrics": "猫が窓際で泣いている",
+      "description": "窓際にいる猫のクローズアップ。主人公はそれを悲しげに見つめる。猫は無垢さや脆弱性の象徴。柔らかな光が猫に当たる。",
+      "prompt": "Close-up of a cat by a window, looking out, soft melancholic lighting, young protagonist watching sadly in the background, symbol of innocence, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Verse 2",
+      "start_time": 104.04,
+      "end_time": 106.56,
+      "lyrics": "さよならも全部僕の罪",
+      "description": "主人公が割れた鏡に映る自分の姿を見つめる。鏡の中の顔は歪み、罪悪感に苛まれているように見える。",
+      "prompt": "Young protagonist looking at their distorted reflection in a broken mirror, face contorted with guilt, desaturated cool tones, dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Verse 2",
+      "start_time": 106.56,
+      "end_time": 109.3,
+      "lyrics": "拭えない 僕の罪",
+      "description": "主人公の手のクローズアップ。手を洗おうとするが、水が黒く濁り、何も洗い流せない。絶望感。",
+      "prompt": "Extreme close-up on young protagonist's hands under running water, water turning black and murky, unable to wash away, sense of despair, desaturated, gritty, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Pre-Chorus 2",
+      "start_time": 109.3,
+      "end_time": 111.82,
+      "lyrics": "おい！ 大きく息を吸い込んで",
+      "description": "主人公が再び大きく息を吸い込む。前回よりもさらに強い決意が顔に現れている。カメラは主人公に勢いよく寄る。",
+      "prompt": "Dynamic push-in close-up on young protagonist taking a deep breath, face showing stronger resolve and determination, intense dramatic lighting, desaturated cool tones, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Pre-Chorus 2",
+      "start_time": 111.82,
+      "end_time": 114.34,
+      "lyrics": "ぐっと止めて",
+      "description": "息を止め、目を閉じる主人公。一瞬の静寂の後、目を見開き、その瞳には燃えるような決意が宿る。",
+      "prompt": "Extreme close-up on young protagonist's face, eyes closed, then opening sharply to reveal fierce, burning resolve, intense dramatic lighting, desaturated cool tones, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Pre-Chorus 2",
+      "start_time": 114.34,
+      "end_time": 116.86,
+      "lyrics": "ざっと吐き出して",
+      "description": "主人公が咆哮するかのように息を吐き出す。カメラは素早くズームアウトし、そのエネルギーを捉える。画面に赤色の光がフラッシュ。",
+      "prompt": "Fast zoom out, young protagonist exhaling forcefully like a roar, screen flashing with vibrant red light, raw energy, dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Pre-Chorus 2",
+      "start_time": 116.86,
+      "end_time": 119.46,
+      "lyrics": "けじめはきっちりつけるんだ",
+      "description": "主人公がガラスのオブジェ（脆い幻想の象徴）をゆっくりと叩き割る。スローモーションでガラスが砕け散る。解放の瞬間。",
+      "prompt": "Slow-motion shot, young protagonist smashing a glass object (symbolizing fragile illusion), glass shattering dramatically, sense of liberation, desaturated cool tones with vibrant red highlights, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Chorus 2",
+      "start_time": 119.46,
+      "end_time": 124.5,
+      "lyrics": "心臓は動いてる 心臓は動いてる",
+      "description": "主人公が走り続ける。今回はより明確な目的意識を持っており、表情も力強い。背景の都市はまだ残っているが、以前より自然な光が差し込み、少し明るい色調。",
+      "prompt": "Dynamic tracking shot, young protagonist running with clear purpose and strong expression, urban background with more natural light, slightly brighter color palette, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Chorus 2",
+      "start_time": 124.5,
+      "end_time": 129.54,
+      "lyrics": "悔しさも切なさも飲み込んで",
+      "description": "主人公の顔のクローズアップ。汗と涙が混じり合っているが、今度は痛みだけでなく、乗り越えようとする強い意志が見える。夕日が顔に当たる。",
+      "prompt": "Close-up on young protagonist's face, sweat and tears, expression of pain mixed with strong resolve, golden sunlight catching their face, dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Chorus 2",
+      "start_time": 129.54,
+      "end_time": 133.58,
+      "lyrics": "心臓は動いてる 心臓は動いてる",
+      "description": "主人公が崖や高層ビルの端に立ち、風に髪をなびかせながら遠くの地平線を見つめる。広角レンズで、広がる世界と主人公の解放感を表現。空は鮮やかな夕焼け。",
+      "prompt": "Cinematic wide shot, young protagonist standing on a cliff edge or skyscraper, wind blowing through hair, looking at a vibrant sunset horizon, expansive view, sense of liberation, rich warm colors, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Chorus 2",
+      "start_time": 133.58,
+      "end_time": 138.85,
+      "lyrics": "爆発寸前だ！",
+      "description": "激しいモンタージュ。鎖が砕け散る、鳥が鮮やかな空へ飛び立つ、赤い光が閃光のように走る、主人公が力強く叫ぶ。すべてが解放と爆発を象徴する。",
+      "prompt": "Intense montage: chains breaking, a bird flying free into a vibrant, colorful sky, red light flashing, young protagonist screaming defiantly, explosive imagery, high contrast, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Guitar Solo 2 / Bridge Instrumental",
+      "start_time": 138.85,
+      "end_time": 144.0,
+      "lyrics": "",
+      "description": "バンドメンバーの演奏シーン。暗く荒れた倉庫のような場所で、激しいライティングとスモークの中、エネルギーに満ちたパフォーマンス。カットは速く、バンドの熱気を伝える。",
+      "prompt": "High-energy performance shot of a punk rock band in a dark, gritty warehouse, dynamic lighting, smoke, fast cuts, intense musical performance, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Guitar Solo 2 / Bridge Instrumental",
+      "start_time": 144.0,
+      "end_time": 149.0,
+      "lyrics": "",
+      "description": "主人公の旅路がバンド演奏と交互に描かれる。トンネルを走り抜け、フェンスを乗り越え、障害物を押し進む。以前より積極的で力強い動き。",
+      "prompt": "Intercut with young protagonist's journey: running through tunnels, climbing fences, pushing through obstacles, active and powerful movements, gritty urban setting, dynamic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Guitar Solo 2 / Bridge Instrumental",
+      "start_time": 149.0,
+      "end_time": 154.0,
+      "lyrics": "",
+      "description": "楽器のクローズアップ。ギターの弦を弾く指、ドラムを叩くスティック、汗が飛び散る。音楽の生々しいエネルギーを強調。",
+      "prompt": "Extreme close-ups of musical instruments: fingers shredding guitar strings, drumsticks hitting cymbals, sweat flying, raw energy, intense dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Guitar Solo 2 / Bridge Instrumental",
+      "start_time": 154.0,
+      "end_time": 202.5,
+      "lyrics": "",
+      "description": "主人公の顔、バンドメンバー、抽象的な光のパターン、そして抑圧的な世界が鮮やかな色に砕け散るフラッシュモンタージュ。視覚的な情報が爆発的に押し寄せる。",
+      "prompt": "Rapid-fire montage: young protagonist's face, band members, abstract light patterns, oppressive world shattering into vibrant colors, explosive visual information, high contrast, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Bridge",
+      "start_time": 202.5,
+      "end_time": 207.54,
+      "lyrics": "許されても構わない 殺されたって構わない",
+      "description": "主人公が真っ白で殺風景な部屋に一人で立っている。見えない尋問者や裁判官と向き合っているかのような構図。冷たく臨床的なライティング。",
+      "prompt": "Cinematic shot, young protagonist standing alone in a stark, empty, white room, facing an unseen interrogator or judge, cold clinical lighting, desaturated tones, sense of confrontation, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Bridge",
+      "start_time": 207.54,
+      "end_time": 212.58,
+      "lyrics": "記憶の底を見てきたぞ 鬼のような顔も見てきたぞ",
+      "description": "過去のトラウマや不公平な出来事のフラッシュバック。歪んだ、悪夢のような赤みがかったフィルターがかかり、「鬼のような顔」が瞬間的に現れる。",
+      "prompt": "Flashbacks of past traumas, distorted and nightmarish, red-tinted filter, a brief appearance of a 'demon-like face', unsettling atmosphere, high contrast, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Bridge",
+      "start_time": 212.58,
+      "end_time": 217.62,
+      "lyrics": "あの日の敵を討った君 地獄から舞い戻った僕",
+      "description": "主人公が変容する瞬間。脆弱さの層を脱ぎ捨て、より決意に満ちた姿になる。体から微かな光が放たれる。",
+      "prompt": "Young protagonist transforming, shedding a layer of vulnerability, becoming resolute, subtle inner glow emanating from their body, powerful and symbolic, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Bridge",
+      "start_time": 217.62,
+      "end_time": 222.66,
+      "lyrics": "心臓は動いてる 心臓は動いてる",
+      "description": "主人公の胸のクローズアップ。力強く脈打つ心臓の鼓動が聞こえる（音響効果）。白い部屋の壁にひびが入り始める。",
+      "prompt": "Close-up on young protagonist's chest, feeling a strong heartbeat, white room walls beginning to crack, symbolic of internal power, dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Bridge",
+      "start_time": 222.66,
+      "end_time": 227.7,
+      "lyrics": "今夜 全てがひっくり返る",
+      "description": "主人公が立ち上がり、上を見上げる。殺風景な部屋がガラスのように砕け散り、その向こうから鮮やかで混沌とした、しかし希望に満ちた新しい世界が姿を現す。",
+      "prompt": "Young protagonist standing tall, looking up, sterile white room shattering like glass, revealing a vibrant, chaotic, yet hopeful new world beyond, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Bridge",
+      "start_time": 227.7,
+      "end_time": 230.5,
+      "lyrics": "今夜 全てがひっくり返る 爆発寸前だ！",
+      "description": "主人公が心からの、力強い笑顔を見せる。古い世界が崩壊する中で、その笑顔は希望の象徴となる。",
+      "prompt": "Close-up on young protagonist's face, a genuine, powerful smile, old world crumbling dramatically around them, vibrant colors, symbol of hope and liberation, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Chorus",
+      "start_time": 230.5,
+      "end_time": 235.54,
+      "lyrics": "爆発寸前だ！ 心臓は動いてる 心臓は動いてる",
+      "description": "主人公が砕け散った現実の中に立ち、今や完全に力を得ている。世界は壊れた破片と新しい成長が混じり合い、鮮やかでダイナミック。",
+      "prompt": "Cinematic shot, young protagonist standing empowered amidst a shattered reality, world is a dynamic mix of broken pieces and new growth, vibrant and colorful, dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Chorus",
+      "start_time": 235.54,
+      "end_time": 240.58,
+      "lyrics": "爆発寸前だ！",
+      "description": "主人公、激しく演奏するバンド、そして爆発/解放を象徴する抽象的なビジュアルが高速で切り替わるモンタージュ。すべてが鮮やかな色彩で描かれる。",
+      "prompt": "Fast-paced montage: young protagonist, band performing with intense energy, abstract visuals of explosion and liberation, all in full, rich, vibrant colors, high contrast, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Chorus",
+      "start_time": 240.58,
+      "end_time": 245.62,
+      "lyrics": "心臓は動いてる 爆発寸前だ！",
+      "description": "主人公が手を差し伸べ、他の人々を招き入れる。集団的なエネルギーと希望の感覚が生まれる。",
+      "prompt": "Young protagonist reaching out, inviting others to join, sense of collective energy and hope, vibrant and dynamic background, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Chorus",
+      "start_time": 245.62,
+      "end_time": 250.66,
+      "lyrics": "心臓は動いてる 爆発寸前だ！",
+      "description": "主人公の顔のクローズアップ。歌詞を叫び、純粋なカタルシスを表現。瞳は輝き、生気に満ちている。",
+      "prompt": "Extreme close-up on young protagonist's face, screaming the lyrics, pure catharsis, bright and lively eyes, vibrant colors, intense dramatic lighting, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Chorus",
+      "start_time": 250.66,
+      "end_time": 255.7,
+      "lyrics": "心臓は動いてる 心臓は生きてやる",
+      "description": "主人公が地平線に向かって走り出す。世界は今や鮮やかな色彩に満ち、無限に広がる道が続く。自由と目的意識に満ちた姿。",
+      "prompt": "Dynamic tracking shot, young protagonist running towards a vibrant, colorful horizon, endless open road, full of life, purpose, and freedom, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Chorus",
+      "start_time": 255.7,
+      "end_time": 300.74,
+      "lyrics": "生きてやる 生きてやる",
+      "description": "様々な人々（エキストラ）が主人公に加わり、共に走り出す。コミュニティと共有された解放感の感覚が広がる。",
+      "prompt": "Wide shot, diverse group of people (extras) joining the young protagonist, running together towards the horizon, sense of community and shared liberation, vibrant and dynamic, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Chorus",
+      "start_time": 300.74,
+      "end_time": 305.78,
+      "lyrics": "生きてやる",
+      "description": "主人公が丘の上に立ち、両腕を広げて勝利を宣言する。昇る朝日の黄金色の光に包まれる。",
+      "prompt": "Cinematic wide shot, young protagonist standing triumphantly on a hill, arms outstretched, bathed in golden light of a sunrise, powerful symbol of victory and hope, vibrant colors, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Chorus",
+      "start_time": 305.78,
+      "end_time": 310.0,
+      "lyrics": "生きてやるったら生きてやる",
+      "description": "主人公の瞳が挑戦と希望に燃える最後の力強いクローズアップ。その後、素早くブラックアウト。",
+      "prompt": "Extreme close-up on young protagonist's eyes, blazing with defiance and hope, intense dramatic lighting, vibrant colors, then a quick cut to black, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Instrumental",
+      "start_time": 310.0,
+      "end_time": 315.0,
+      "lyrics": "",
+      "description": "クレジットが流れる。主人公のシルエットが燃えるような夕焼けを背景に lingering shot。",
+      "prompt": "Credits rolling over a lingering shot of young protagonist's silhouette against a vibrant, fiery sunset, cinematic, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Instrumental",
+      "start_time": 315.0,
+      "end_time": 320.0,
+      "lyrics": "",
+      "description": "画面がブラックアウトし、砕け散ったガラスが新しい希望の抽象的なシンボルへと再形成されるアニメーションが微かに表示される。",
+      "prompt": "Fade to black, subtle animation of shattered glass reforming into a new, abstract symbol of hope, minimalist, dark background, high detail, 16:9 aspect ratio."
+    },
+    {
+      "section": "Outro Instrumental",
+      "start_time": 320.0,
+      "end_time": 329.41,
+      "lyrics": "",
+      "description": "最終的なプロダクションロゴが表示される黒い画面。",
+      "prompt": "Black screen with final production logos, clean and minimalist, 16:9 aspect ratio."
+    }
+  ]
+}

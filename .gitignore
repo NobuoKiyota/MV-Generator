@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*venv/
+.venv/
+
+# Project specific
+.env
+assets/
+ai_archives/
+scratch/
+.ignore/
+
+# OS specific
+.DS_Store
+Thumbs.db
