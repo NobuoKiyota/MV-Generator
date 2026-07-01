@@ -164,10 +164,30 @@ def run_gui_scenario_test():
     if os.path.exists(test_excel_path):
         os.remove(test_excel_path)
         
-    print("[TEST] STEP 2 check passed.")
+    # 4. キャッシュのセーブ・ロード検証
+    print("[TEST] Simulating Session Caching (Save/Load)...")
+    app.save_session_cache()
     
-    # Tkインフラの破棄
+    cache_file = app.get_cache_file_path()
+    assert os.path.exists(cache_file), "Session cache file was not created."
+    
+    # 破棄して新規立ち上げ時の復元テスト
     root.destroy()
+    
+    print("[TEST] Launching new instance to verify autosave restoration...")
+    root2 = tk.Tk()
+    app2 = XlsxGeneratorApp(root2)
+    
+    assert app2.concept_title.get() == "Neon Flight", "Title was not restored from session cache."
+    assert app2.raw_idea.get() == "Cyberpunk aesthetic, neon blue tone", "Raw idea was not restored from session cache."
+    
+    root2.destroy()
+    
+    # クリーンアップ
+    if os.path.exists(cache_file):
+        os.remove(cache_file)
+        
+    print("[TEST] Session Caching check passed.")
     
     print("====================================================")
     print(" ALL SCENARIO TESTS PASSED SUCCESSFULLY! ")

@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
@@ -43,6 +44,12 @@ class XlsxGeneratorApp:
         
         self.create_widgets()
         self.toggle_lyrics_state()
+        
+        # 前回セッションの自動復元
+        self.load_session_cache()
+        
+        # 終了イベントのフック (自動セーブ)
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def create_widgets(self):
         # 1. 最下部共通：APIキーとステータス表示用フレーム
@@ -235,6 +242,7 @@ class XlsxGeneratorApp:
         )
         if filepath:
             self.audio_path.set(filepath)
+            self.save_session_cache()
 
     def browse_midi(self):
         filepath = filedialog.askopenfilename(
@@ -242,6 +250,7 @@ class XlsxGeneratorApp:
         )
         if filepath:
             self.midi_path.set(filepath)
+            self.save_session_cache()
 
     def toggle_lyrics_state(self):
         if self.audio_type.get() == "vocal":
@@ -254,6 +263,84 @@ class XlsxGeneratorApp:
     def set_status(self, text, color="gray"):
         self.lbl_status.config(text=text, foreground=color)
         self.root.update_idletasks()
+
+    # =====================================================================
+    # 💾 セッション情報のセーブ・ロード処理
+    # =====================================================================
+    def get_cache_file_path(self):
+        cache_dir = "assets"
+        os.makedirs(cache_dir, exist_ok=True)
+        return os.path.join(cache_dir, "last_session.json")
+
+    def save_session_cache(self):
+        try:
+            cache_data = {
+                "audio_path": self.audio_path.get(),
+                "midi_path": self.midi_path.get(),
+                "audio_type": self.audio_type.get(),
+                "raw_idea": self.raw_idea.get(),
+                "lyrics_text": self.txt_lyrics.get("1.0", tk.END).strip(),
+                "bpm_val": self.bpm_val.get(),
+                "offset_val": self.offset_val.get(),
+                "time_sig": self.time_sig.get(),
+                "vis_style": self.vis_style.get(),
+                "aspect_ratio": self.aspect_ratio.get(),
+                "concept_title": self.concept_title.get(),
+                "concept_desc": self.txt_res_concept.get("1.0", tk.END).strip(),
+                "character_desc": self.txt_res_char.get("1.0", tk.END).strip(),
+                "rules_desc": self.txt_res_rules.get("1.0", tk.END).strip()
+            }
+            with open(self.get_cache_file_path(), "w", encoding="utf-8") as f:
+                json.dump(cache_data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"[WARNING] Failed to save session cache: {e}")
+
+    def load_session_cache(self):
+        cache_path = self.get_cache_file_path()
+        if not os.path.exists(cache_path):
+            return
+            
+        try:
+            with open(cache_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                
+            self.audio_path.set(data.get("audio_path", ""))
+            self.midi_path.set(data.get("midi_path", ""))
+            self.audio_type.set(data.get("audio_type", "vocal"))
+            self.raw_idea.set(data.get("raw_idea", ""))
+            
+            self.txt_lyrics.delete("1.0", tk.END)
+            self.txt_lyrics.insert("1.0", data.get("lyrics_text", ""))
+            
+            self.bpm_val.set(data.get("bpm_val", ""))
+            self.offset_val.set(data.get("offset_val", 0.0))
+            self.time_sig.set(data.get("time_sig", "4/4"))
+            self.vis_style.set(data.get("vis_style", "特になし"))
+            self.aspect_ratio.set(data.get("aspect_ratio", "16:9"))
+            
+            self.concept_title.set(data.get("concept_title", ""))
+            
+            self.txt_res_concept.delete("1.0", tk.END)
+            self.txt_res_concept.insert("1.0", data.get("concept_desc", ""))
+            
+            self.txt_res_char.delete("1.0", tk.END)
+            self.txt_res_char.insert("1.0", data.get("character_desc", ""))
+            
+            self.txt_res_rules.delete("1.0", tk.END)
+            self.txt_res_rules.insert("1.0", data.get("rules_desc", ""))
+            
+            # 前回生成されたテストプレビュー画像があれば自動ロードして再表示
+            preview_img_path = os.path.join("assets", "temp_preview.png")
+            if os.path.exists(preview_img_path):
+                self.display_preview_image(preview_img_path)
+                
+        except Exception as e:
+            print(f"[WARNING] Failed to load session cache: {e}")
+
+    def on_close(self):
+        # 終了前に現在の状態を自動保存
+        self.save_session_cache()
+        self.root.destroy()
 
     # =====================================================================
     # 🎨 スレッド制御: ステップ1 コンセプト案生成
@@ -320,6 +407,9 @@ class XlsxGeneratorApp:
             
             self.root.after(0, lambda: self.txt_res_rules.delete("1.0", tk.END))
             self.root.after(0, lambda: self.txt_res_rules.insert("1.0", concept.get("rules", "")))
+            
+            # セッションの自動セーブ
+            self.save_session_cache()
             
             self.root.after(0, lambda: self.set_status("Concept settings generated successfully!", "green"))
             self.root.after(0, lambda: messagebox.showinfo("Success", "Concept generated! Please review/edit the settings, then switch to Tab 2 to create the timeline."))
@@ -395,6 +485,10 @@ class XlsxGeneratorApp:
             # 3. 画像をリサイズしてGUIに描画
             self.root.after(0, lambda: self.set_status("Loading preview image...", "blue"))
             self.root.after(0, lambda: self.display_preview_image(output_path))
+            
+            # キャッシュのセーブ
+            self.save_session_cache()
+            
             self.root.after(0, lambda: self.set_status("Test image preview loaded!", "green"))
             
         except Exception as e:
@@ -406,7 +500,6 @@ class XlsxGeneratorApp:
     def display_preview_image(self, img_path):
         try:
             img = Image.open(img_path)
-            # 240x135 にサムネイルリサイズ
             img.thumbnail((240, 135))
             
             self.preview_photo = ImageTk.PhotoImage(img)
@@ -533,6 +626,9 @@ class XlsxGeneratorApp:
             with open(save_path, "wb") as f:
                 f.write(xlsx_bytes)
                 
+            # キャッシュのセーブ
+            self.save_session_cache()
+            
             self.root.after(0, lambda: self.set_status("Excel generated and saved!", "green"))
             self.root.after(0, lambda: messagebox.showinfo("Success", f"Worldview-aligned Excel sheet successfully saved at:\n{save_path}"))
             
