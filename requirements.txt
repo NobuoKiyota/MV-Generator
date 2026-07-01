@@ -8,3 +8,6 @@ google-genai
 diffusers
 transformers<5.0.0
 accelerate
+openpyxl
+mido
+

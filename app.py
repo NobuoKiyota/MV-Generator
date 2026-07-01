@@ -430,22 +430,33 @@ with tab3:
                         
             # 個別画像生成ボタン (ローカルGPU優先)
             if st.button("🎨 このカットの画像を生成 (ローカルGPU優先)", key=f"btn_gen_{selected_cut_index}"):
-                with st.spinner("画像を生成中..."):
+                with st.status("画像を生成中...", expanded=True) as status:
+                    log_placeholder = st.empty()
+                    logs = []
+                    
+                    def update_log(line):
+                        logs.append(line)
+                        log_placeholder.code("\n".join(logs[-10:])) # 直近10行を表示
+                    
                     img_path = os.path.join(images_dir, f"cut_{selected_cut_index}.png")
                     success, status_msg = generate_imagen_image(
                         prompt=st.session_state[prompt_key],
                         output_path=img_path,
-                        api_key=api_key_input
+                        api_key=api_key_input,
+                        log_callback=update_log
                     )
+                    
                     if success:
+                        status.update(label="画像生成完了！", state="complete", expanded=False)
                         if status_msg == "LOCAL_SUCCESS":
                             st.success("🎉 画像生成に成功しました！（ローカルGPU: DreamShaper-8 を使用）")
                         elif status_msg == "CLOUD_SUCCESS":
                             st.success("🎉 画像生成に成功しました！（クラウドAPI: Imagen を使用）")
                         else:
-                            st.success("🎉 画像生成に成功しました！")
+                            st.success(f"🎉 画像生成に成功しました！ ({status_msg})")
                         st.rerun()
                     else:
+                        status.update(label="画像生成に失敗しました", state="error", expanded=True)
                         if status_msg == "PAID_PLAN_REQUIRED":
                             st.error("❌ 画像生成エラー: 現在のAPIキー（無料プラン）では画像生成（Imagen 3）をご利用いただけません。画像生成機能を使うには、Google AI Studioコンソールで有料プラン（従量課金設定）にアップグレードしてカード情報を登録する必要があります。")
                             st.info("💡 解決策: ①ローカルGPU（RTX 3060/4060等）が正しく認識されれば自動的に無料ローカル生成が動きます。 ②画像生成を行わない状態でも、左側の『スライドショー動画をレンダリング』ボタンを押すことで、歌詞付きの仮画面によるデモ動画を作成可能です！")

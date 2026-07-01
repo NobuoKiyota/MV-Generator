@@ -6,107 +6,72 @@ from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
 # ローカル Stable Diffusion パイプラインキャッシュ用
 _sd_pipeline = None
 
-def generate_imagen_image(prompt, output_path, api_key=None):
+def generate_imagen_image(prompt, output_path, api_key=None, log_callback=None):
     """
     画像生成のメイン処理。
-    1. まずローカルのGPU（Stable Diffusion: DreamShaper-8）を使用して無料かつ高速に画像を生成します。
-    2. もしGPUが使えない場合は、自動的にGoogle AI Studio (Imagen 4.0) のクラウドAPI呼び出しにフォールバックします。
+    `generate_image_cmd.py` を別プロセスとして呼び出します。これにより、画像生成終了時に
+    GPU VRAMやメモリが完全に解放され、StreamlitのWebSocket通信がフリーズするのを防ぎます。
     """
-    global _sd_pipeline
+    import sys
+    import subprocess
     
-    # RTX 3060/4060でのローカルGPU生成（アプローチB）の実行
-    try:
-        import torch
-        if torch.cuda.is_available():
-            print("CUDA (GPU) is available. Running local Stable Diffusion generation...")
-            
-            if _sd_pipeline is None:
-                from diffusers import StableDiffusionPipeline
-                
-                local_model_path = os.path.join("models", "dreamshaper_8.safetensors")
-                if os.path.exists(local_model_path):
-                    print(f"Found local model file at {local_model_path}. Loading offline...")
-                    _sd_pipeline = StableDiffusionPipeline.from_single_file(
-                        local_model_path,
-                        torch_dtype=torch.float16,
-                        safety_checker=None
-                    )
-                    print("Local Stable Diffusion model loaded from .safetensors successfully!")
-                else:
-                    from huggingface_hub import enable_progress_bars
-                    enable_progress_bars()  # ダウンロード進捗をプロンプト画面に強制表示
-                    print(f"Local file not found at {local_model_path}. Downloading from Hugging Face...")
-                    model_id = "Lykon/dreamshaper-8"
-                    _sd_pipeline = StableDiffusionPipeline.from_pretrained(
-                        model_id,
-                        torch_dtype=torch.float16,
-                        safety_checker=None  # VRAM/メモリ節約と生成速度向上のため
-                    )
-                    print("Local Stable Diffusion model loaded on GPU successfully!")
-                
-                _sd_pipeline = _sd_pipeline.to("cuda")
-                _sd_pipeline.enable_attention_slicing()  # メモリ節約モード
-                
-            print(f"Generating image on GPU with prompt: {prompt}")
-            # 16:9 (1024x576) で生成
-            image = _sd_pipeline(
-                prompt=prompt,
-                width=1024,
-                height=576,
-                num_inference_steps=20  # 20ステップ（約2〜3秒で完了）
-            ).images[0]
-            
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            image.save(output_path)
-            return True, "LOCAL_SUCCESS"
-        else:
-            print("CUDA is not available. Falling back to Cloud Imagen API...")
-            
-    except Exception as e_local:
-        print(f"Local GPU generation failed or skipped: {e_local}")
-        print("Falling back to Cloud Imagen API...")
-
-    # ローカルGPUが無い、または失敗した場合のクラウドフォールバック
+    cmd = [
+        sys.executable,
+        os.path.join(os.path.dirname(__file__), "generate_image_cmd.py"),
+        "--prompt", prompt,
+        "--output_path", output_path
+    ]
     if api_key:
-        api_k = api_key
-    elif os.environ.get("GEMINI_API_KEY"):
-        api_k = os.environ.get("GEMINI_API_KEY")
-    else:
-        return False, "Gemini API key is not configured and Local GPU is unavailable."
-
-    try:
-        from google import genai
-        import io
-        client = genai.Client(api_key=api_k)
+        cmd.extend(["--api_key", api_key])
         
-        print(f"Calling Imagen 4.0 API via google-genai with prompt: {prompt}")
-        response = client.models.generate_images(
-            model='imagen-4.0-generate-001',
-            prompt=prompt,
-            config=dict(
-                number_of_images=1,
-                aspect_ratio="16:9",
-                output_mime_type="image/png"
-            )
+    print(f"Executing: {' '.join(cmd)}")
+    
+    try:
+        # Popenを使ってリアルタイムに出力を読み取る
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding='utf-8',
+            errors='replace'
         )
         
-        if response.generated_images:
-            image_bytes = response.generated_images[0].image.image_bytes
-            image = Image.open(io.BytesIO(image_bytes))
-            
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            image.save(output_path)
-            print(f"Successfully generated and saved image via Cloud to {output_path}")
-            return True, "CLOUD_SUCCESS"
+        status_msg = "UNKNOWN"
+        while True:
+            line = process.stdout.readline()
+            if not line:
+                break
+            line_str = line.strip()
+            print(f"[ImageGen] {line_str}")
+            if log_callback:
+                log_callback(line_str)
+                
+            # 出力からステータスコードを抽出
+            if "STATUS:" in line_str:
+                status_msg = line_str.split("STATUS:")[1].strip()
+                
+        rc = process.wait()
+        
+        if rc == 0:
+            if status_msg == "LOCAL_SUCCESS":
+                return True, "LOCAL_SUCCESS"
+            elif status_msg == "CLOUD_SUCCESS":
+                return True, "CLOUD_SUCCESS"
+            else:
+                return True, status_msg
         else:
-            return False, "APIが空の応答を返しました。"
-            
+            if "FAILED_PAID_PLAN_REQUIRED" in status_msg:
+                return False, "PAID_PLAN_REQUIRED"
+            elif "FAILED_" in status_msg:
+                return False, status_msg.replace("FAILED_", "")
+            else:
+                return False, f"プロセスが終了コード {rc} で終了しました。{status_msg}"
+                
     except Exception as e:
-        error_msg = str(e)
-        if "Paid plans only" in error_msg or "upgrade your account" in error_msg:
-            return False, "PAID_PLAN_REQUIRED"
-        print(f"Error in generate_imagen_image (Cloud): {error_msg}")
-        return False, error_msg
+        print(f"Error executing generate_image_cmd.py: {e}")
+        return False, str(e)
+
 
 def create_text_placeholder(text, section, duration, output_path, size=(1024, 576)):
     """

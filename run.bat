@@ -20,14 +20,14 @@ if not exist "%VENV_DIR%" (
     )
     
     echo [INFO] PyTorch CUDA 12.1対応版 をインストールしています [約2.5GB、数分かかります]...
-    "%VENV_DIR%\Scripts\pip" install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+    "%VENV_DIR%\Scripts\python.exe" -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
     if errorlevel 1 (
         echo [WARNING] CUDA版PyTorchのインストールに失敗しました。標準のPyTorchを試みます...
-        "%VENV_DIR%\Scripts\pip" install torch torchvision
+        "%VENV_DIR%\Scripts\python.exe" -m pip install torch torchvision
     )
     
     echo [INFO] 依存パッケージをインストールしています...
-    "%VENV_DIR%\Scripts\pip" install -r requirements.txt
+    "%VENV_DIR%\Scripts\python.exe" -m pip install -r requirements.txt
     if errorlevel 1 (
         echo [ERROR] パッケージのインストールに失敗しました。
         pause
