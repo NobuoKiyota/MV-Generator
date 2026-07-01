@@ -5,12 +5,15 @@ from tkinter import filedialog, messagebox
 from tkinter import ttk
 import threading
 from dotenv import load_dotenv
+from PIL import Image, ImageTk
 from utils import (
     analyze_audio, 
     generate_concept_settings, 
     generate_timeline_from_concept, 
+    generate_test_image_prompt,
     export_project_xlsx
 )
+from video_utils import generate_imagen_image
 
 # 環境変数の読み込み
 load_dotenv()
@@ -19,7 +22,7 @@ class XlsxGeneratorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("📊 Song MV Concept & Timeline Generator")
-        self.root.geometry("620x780")
+        self.root.geometry("640x780")
         
         # 共通変数
         self.audio_path = tk.StringVar(value="")
@@ -36,6 +39,7 @@ class XlsxGeneratorApp:
         
         # フェーズ1での出力値（フェーズ2への入力）
         self.concept_title = tk.StringVar(value="")
+        self.preview_photo = None  # テストプレビュー画像の参照保持用
         
         self.create_widgets()
         self.toggle_lyrics_state()
@@ -58,7 +62,7 @@ class XlsxGeneratorApp:
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # 各タブフレーム
-        self.tab_concept = ttk.Frame(self.notebook, padding="15")
+        self.tab_concept = ttk.Frame(self.notebook, padding="10")
         self.tab_timeline = ttk.Frame(self.notebook, padding="15")
         
         self.notebook.add(self.tab_concept, text="🎨 1. コンセプト・キャラクター設定")
@@ -75,7 +79,7 @@ class XlsxGeneratorApp:
         lbl_audio.grid(row=0, column=0, columnspan=2, sticky=tk.W, pady=(0, 2))
         
         audio_frame = ttk.Frame(self.tab_concept)
-        audio_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        audio_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 6))
         self.entry_audio = ttk.Entry(audio_frame, textvariable=self.audio_path)
         self.entry_audio.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
         btn_browse = ttk.Button(audio_frame, text="Browse...", command=self.browse_audio)
@@ -86,7 +90,7 @@ class XlsxGeneratorApp:
         lbl_midi.grid(row=2, column=0, columnspan=2, sticky=tk.W, pady=(0, 2))
         
         midi_frame = ttk.Frame(self.tab_concept)
-        midi_frame.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        midi_frame.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(0, 6))
         self.entry_midi = ttk.Entry(midi_frame, textvariable=self.midi_path)
         self.entry_midi.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
         btn_browse_midi = ttk.Button(midi_frame, text="Browse...", command=self.browse_midi)
@@ -97,7 +101,7 @@ class XlsxGeneratorApp:
         lbl_type.grid(row=4, column=0, columnspan=2, sticky=tk.W, pady=(0, 2))
         
         type_frame = ttk.Frame(self.tab_concept)
-        type_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=(0, 8))
+        type_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=(0, 6))
         rb_vocal = ttk.Radiobutton(type_frame, text="歌詞もの (Vocal)", variable=self.audio_type, value="vocal", command=self.toggle_lyrics_state)
         rb_vocal.pack(side=tk.LEFT, padx=(0, 20))
         rb_inst = ttk.Radiobutton(type_frame, text="インスト (Instrumental)", variable=self.audio_type, value="inst", command=self.toggle_lyrics_state)
@@ -108,8 +112,8 @@ class XlsxGeneratorApp:
         self.lbl_lyrics.grid(row=6, column=0, columnspan=2, sticky=tk.W, pady=(0, 2))
         
         lyrics_txt_frame = ttk.Frame(self.tab_concept)
-        lyrics_txt_frame.grid(row=7, column=0, columnspan=2, sticky="nsew", pady=(0, 8))
-        self.txt_lyrics = tk.Text(lyrics_txt_frame, height=6, width=70, font=("Meiryo UI", 9))
+        lyrics_txt_frame.grid(row=7, column=0, columnspan=2, sticky="nsew", pady=(0, 6))
+        self.txt_lyrics = tk.Text(lyrics_txt_frame, height=5, width=70, font=("Meiryo UI", 9))
         self.txt_lyrics.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar = ttk.Scrollbar(lyrics_txt_frame, command=self.txt_lyrics.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -119,41 +123,61 @@ class XlsxGeneratorApp:
         lbl_idea = ttk.Label(self.tab_concept, text=" Visual Direction/Rough Idea:", font=("Meiryo UI", 9, "bold"))
         lbl_idea.grid(row=8, column=0, columnspan=2, sticky=tk.W, pady=(0, 2))
         self.entry_idea = ttk.Entry(self.tab_concept, textvariable=self.raw_idea)
-        self.entry_idea.grid(row=9, column=0, columnspan=2, sticky="ew", pady=(0, 10))
+        self.entry_idea.grid(row=9, column=0, columnspan=2, sticky="ew", pady=(0, 8))
 
         # コンセプト生成ボタン
         self.btn_gen_concept = ttk.Button(self.tab_concept, text="🎨 STEP 1: ビジュアル設定（世界観・キャラ）をAI自動生成", command=self.start_concept_thread)
-        self.btn_gen_concept.grid(row=10, column=0, columnspan=2, sticky="ew", ipady=4, pady=(0, 15))
+        self.btn_gen_concept.grid(row=10, column=0, columnspan=2, sticky="ew", ipady=4, pady=(0, 10))
 
-        # 設定出力・手動修正エリア
-        lbl_result_frame = ttk.LabelFrame(self.tab_concept, text=" 📝 AI提案設定図 (人間が直接修正して決定できます) ", padding="10")
+        # 設定出力・手動修正 ＆ プレビュー表示の分割フレーム
+        lbl_result_frame = ttk.LabelFrame(self.tab_concept, text=" 📝 AI提案設定図 & プレビュー確認 (直接修正してテスト画像で確認できます) ", padding="10")
         lbl_result_frame.grid(row=11, column=0, columnspan=2, sticky="nsew")
-        lbl_result_frame.columnconfigure(0, weight=1)
-        lbl_result_frame.columnconfigure(1, weight=1)
+        lbl_result_frame.columnconfigure(0, weight=3) # 左半分に比重
+        lbl_result_frame.columnconfigure(1, weight=2) # 右半分に比重
+        
+        # --- 左半分: テキスト設定入力エリア ---
+        frame_text_settings = ttk.Frame(lbl_result_frame)
+        frame_text_settings.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+        frame_text_settings.columnconfigure(1, weight=1)
         
         # 提案タイトル
-        lbl_res_title = ttk.Label(lbl_result_frame, text="Proposed Project Title:")
+        lbl_res_title = ttk.Label(frame_text_settings, text="Proposed Project Title:")
         lbl_res_title.grid(row=0, column=0, sticky=tk.W)
-        self.entry_res_title = ttk.Entry(lbl_result_frame, textvariable=self.concept_title)
+        self.entry_res_title = ttk.Entry(frame_text_settings, textvariable=self.concept_title)
         self.entry_res_title.grid(row=0, column=1, sticky="ew", pady=2)
         
         # 世界観コンセプト設定
-        lbl_res_concept = ttk.Label(lbl_result_frame, text="Worldview & Concept:")
+        lbl_res_concept = ttk.Label(frame_text_settings, text="Worldview & Concept:")
         lbl_res_concept.grid(row=1, column=0, sticky=tk.W, pady=(5, 0))
-        self.txt_res_concept = tk.Text(lbl_result_frame, height=3, width=70, font=("Meiryo UI", 9))
+        self.txt_res_concept = tk.Text(frame_text_settings, height=3, width=40, font=("Meiryo UI", 9))
         self.txt_res_concept.grid(row=2, column=0, columnspan=2, sticky="ew", pady=2)
         
         # キャラクタービジュアル設定
-        lbl_res_char = ttk.Label(lbl_result_frame, text="Character Design Details (Hair, Eyes, Clothes):")
+        lbl_res_char = ttk.Label(frame_text_settings, text="Character Design Details:")
         lbl_res_char.grid(row=3, column=0, sticky=tk.W, pady=(5, 0))
-        self.txt_res_char = tk.Text(lbl_result_frame, height=3, width=70, font=("Meiryo UI", 9))
+        self.txt_res_char = tk.Text(frame_text_settings, height=3, width=40, font=("Meiryo UI", 9))
         self.txt_res_char.grid(row=4, column=0, columnspan=2, sticky="ew", pady=2)
         
         # 色彩・トーン共通ルール
-        lbl_res_rules = ttk.Label(lbl_result_frame, text="Color Palette & Video Tone Rules:")
+        lbl_res_rules = ttk.Label(frame_text_settings, text="Color Palette & Tone Rules:")
         lbl_res_rules.grid(row=5, column=0, sticky=tk.W, pady=(5, 0))
-        self.txt_res_rules = tk.Text(lbl_result_frame, height=3, width=70, font=("Meiryo UI", 9))
+        self.txt_res_rules = tk.Text(frame_text_settings, height=3, width=40, font=("Meiryo UI", 9))
         self.txt_res_rules.grid(row=6, column=0, columnspan=2, sticky="ew", pady=2)
+
+        # --- 右半分: 画像プレビューエリア ---
+        frame_preview_settings = ttk.Frame(lbl_result_frame)
+        frame_preview_settings.grid(row=0, column=1, sticky="nsew")
+        
+        lbl_prev_title = ttk.Label(frame_preview_settings, text="Worldview Preview Image:", font=("Meiryo UI", 9, "bold"))
+        lbl_prev_title.pack(anchor=tk.W, pady=(0, 5))
+        
+        # テスト画像プレビュー用ラベル (縦135px, 横240px: 16:9比率にリサイズして表示)
+        self.lbl_preview = ttk.Label(frame_preview_settings, text="No Preview Image", relief="solid", borderwidth=1, anchor=tk.CENTER)
+        self.lbl_preview.pack(fill=tk.BOTH, expand=True, ipady=40, pady=(0, 10))
+        
+        # テスト画像生成ボタン
+        self.btn_gen_test_img = ttk.Button(frame_preview_settings, text="🖼️ 設定のテスト画像を生成", command=self.start_test_image_thread)
+        self.btn_gen_test_img.pack(fill=tk.X, ipady=4)
 
         # ----------------------------------------------------
         # 📊 タブ2: タイムライン（Excel）生成 UI の構築
@@ -202,7 +226,7 @@ class XlsxGeneratorApp:
         self.btn_gen_timeline.grid(row=3, column=0, columnspan=2, sticky="ew", ipady=6, pady=10)
         
         # ガイドメッセージ
-        lbl_guide = ttk.Label(self.tab_timeline, text="※まずタブ1でコンセプト設定を作成・編集してから、このボタンを押してください。\nタブ1で確定されたキャラクタービジュアルやカラーパレットがすべてのカットプロンプトへ自動流し込みされます。", font=("Meiryo UI", 9, "italic"), justify=tk.LEFT)
+        lbl_guide = ttk.Label(self.tab_timeline, text="※まずタブ1でコンセプト設定を作成・編集し、必要に応じて「テスト画像」で世界観を確認した上で実行してください。\n確定されたビジュアル要素が全プロンプトへ自動流し込みされます。", font=("Meiryo UI", 9, "italic"), justify=tk.LEFT)
         lbl_guide.grid(row=4, column=0, columnspan=2, sticky=tk.W)
 
     def browse_audio(self):
@@ -305,6 +329,91 @@ class XlsxGeneratorApp:
             self.root.after(0, lambda: self.set_status("Error occurred.", "red"))
         finally:
             self.root.after(0, lambda: self.btn_gen_concept.config(state="normal"))
+
+    # =====================================================================
+    # 🖼️ スレッド制御: 設定確認用のテスト画像（プレビュー）生成
+    # =====================================================================
+    def start_test_image_thread(self):
+        api = self.api_key.get().strip()
+        if not api:
+            messagebox.showerror("Error", "Gemini API Key is required.")
+            return
+            
+        title = self.concept_title.get().strip()
+        concept = self.txt_res_concept.get("1.0", tk.END).strip()
+        if not title or not concept:
+            messagebox.showerror("Error", "Please generate visual settings (STEP 1) first.")
+            return
+
+        self.btn_gen_test_img.config(state="disabled")
+        self.set_status("Generating test image prompt...", "blue")
+        
+        thread = threading.Thread(target=self.generate_test_image_process, daemon=True)
+        thread.start()
+
+    def generate_test_image_process(self):
+        try:
+            concept_summary = {
+                "title": self.concept_title.get().strip(),
+                "concept": self.txt_res_concept.get("1.0", tk.END).strip(),
+                "characters": self.txt_res_char.get("1.0", tk.END).strip(),
+                "rules": self.txt_res_rules.get("1.0", tk.END).strip()
+            }
+            
+            # 1. Geminiで英語テストプロンプトを合成
+            self.root.after(0, lambda: self.set_status("Synthesizing English preview prompt with Gemini...", "blue"))
+            test_prompt = generate_test_image_prompt(
+                concept_summary=concept_summary,
+                visual_style=self.vis_style.get(),
+                aspect_ratio=self.aspect_ratio.get(),
+                api_key=self.api_key.get().strip()
+            )
+            
+            if not test_prompt:
+                self.root.after(0, lambda: messagebox.showerror("Error", "Failed to generate image prompt."))
+                return
+
+            print(f"[TEST IMAGE PROMPT] {test_prompt}")
+            
+            # 2. 画像生成 (Stable Diffusion ローカル)
+            self.root.after(0, lambda: self.set_status("Generating test image (Stable Diffusion GPU)...", "blue"))
+            
+            output_dir = "assets"
+            os.makedirs(output_dir, exist_ok=True)
+            output_path = os.path.join(output_dir, "temp_preview.png")
+            
+            success, status_msg = generate_imagen_image(
+                prompt=test_prompt,
+                output_path=output_path,
+                api_key=self.api_key.get().strip()
+            )
+            
+            if not success or not os.path.exists(output_path):
+                self.root.after(0, lambda: messagebox.showerror("Error", f"Failed to generate test image:\n{status_msg}"))
+                return
+                
+            # 3. 画像をリサイズしてGUIに描画
+            self.root.after(0, lambda: self.set_status("Loading preview image...", "blue"))
+            self.root.after(0, lambda: self.display_preview_image(output_path))
+            self.root.after(0, lambda: self.set_status("Test image preview loaded!", "green"))
+            
+        except Exception as e:
+            self.root.after(0, lambda: messagebox.showerror("Error", f"Error in test image generation:\n{e}"))
+            self.root.after(0, lambda: self.set_status("Error occurred.", "red"))
+        finally:
+            self.root.after(0, lambda: self.btn_gen_test_img.config(state="normal"))
+
+    def display_preview_image(self, img_path):
+        try:
+            img = Image.open(img_path)
+            # 240x135 にサムネイルリサイズ
+            img.thumbnail((240, 135))
+            
+            self.preview_photo = ImageTk.PhotoImage(img)
+            self.lbl_preview.config(image=self.preview_photo, text="")
+            self.root.update_idletasks()
+        except Exception as e:
+            print(f"Failed to display preview image: {e}")
 
     # =====================================================================
     # 📊 スレッド制御: ステップ2 タイムライン & Excel 保存

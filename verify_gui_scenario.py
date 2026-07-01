@@ -58,7 +58,39 @@ def run_gui_scenario_test():
     assert "female hacker" in char_text, "Character text was not updated correctly."
     assert "Neon blue" in rules_text, "Rules text was not updated correctly."
     
-    print("[TEST] STEP 1 check passed.")
+    print("[TEST] STEP 1 check passed. (Worldview definitions verified)")
+
+    # 2.5. テスト画像生成 (Preview) のシミュレーション
+    print("[TEST] Simulating Test Image Preview Generation...")
+    
+    mock_test_prompt = "A high detailed futuristic neon city, cyberpunk style, 16:9 aspect ratio."
+    
+    # テスト画像生成時に Pillow で実際にダミー画像ファイルを作成して保存する
+    def side_effect_generate_image(prompt, output_path, api_key=None):
+        from PIL import Image
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        img = Image.new('RGB', (240, 135), color=(0, 0, 255))
+        img.save(output_path)
+        return True, "LOCAL_SUCCESS"
+
+    with patch("xlsx_generator_gui.generate_test_image_prompt", return_value=mock_test_prompt) as mock_prompt_gen, \
+         patch("xlsx_generator_gui.generate_imagen_image", side_effect=side_effect_generate_image) as mock_img_gen:
+         
+        app.generate_test_image_process()
+        
+        mock_prompt_gen.assert_called_once()
+        mock_img_gen.assert_called_once()
+
+    root.update()
+    
+    # プレビュー画像がGUIに正しく読み込まれたか検証
+    assert app.preview_photo is not None, "Preview photo was not loaded in App."
+    # テンポラリプレビューファイルのクリーンアップ
+    temp_preview_file = os.path.join("assets", "temp_preview.png")
+    if os.path.exists(temp_preview_file):
+        os.remove(temp_preview_file)
+        
+    print("[TEST] Test Image Preview check passed.")
 
     # 3. STEP 2: タイムライン & Excel生成のシミュレーション
     mock_timeline = {

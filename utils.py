@@ -328,6 +328,61 @@ def generate_concept_settings(lyrics, bpm, duration, raw_idea="", api_key=None, 
             except:
                 pass
 
+
+def generate_test_image_prompt(concept_summary, visual_style="特になし", aspect_ratio="16:9", api_key=None):
+    """
+    確定したコンセプト、キャラクター設定、色彩設計、および指定されたスタイルから、
+    世界観を代表する「テスト画像用の英語プロンプト」を1枚分自動合成する。
+    """
+    if api_key:
+        genai.configure(api_key=api_key)
+    elif os.environ.get("GEMINI_API_KEY"):
+        genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+    else:
+        raise ValueError("Gemini API key is not configured.")
+
+    model = genai.GenerativeModel('gemini-2.5-flash')
+    
+    title = concept_summary.get("title", "Song Project")
+    concept_desc = concept_summary.get("concept", "")
+    character_desc = concept_summary.get("characters", "")
+    rules_desc = concept_summary.get("rules", "")
+
+    prompt = f"""
+あなたは画像生成AI(Imagen 3 / Stable Diffusion)用の卓越したプロンプトデザイナーです。
+入力された【ミュージックビデオ(MV)の世界観設定・キャラクターデザイン・色彩トーン】を元に、
+そのビジュアルを象徴する、最も代表的で高品質な「1枚のテスト画像生成用の英語プロンプト」を構築してください。
+
+【MVのビジュアル設定】
+- 世界観コンセプト: 
+\"\"\"
+{concept_desc}
+\"\"\"
+- キャラクター設定: 
+\"\"\"
+{character_desc}
+\"\"\"
+- 色彩設計と演出トーン: 
+\"\"\"
+{rules_desc}
+\"\"\"
+- 指定ビジュアルスタイル: {visual_style}
+- アスペクト比: {aspect_ratio}
+
+【構築条件】
+1. キャラクター設定に記載された外見的特徴（髪型、目の色、服装など）を詳細に反映してください。
+2. 世界観コンセプトに書かれた背景、ライティング（光の当たり方）、カラーパレットの色彩設計ルールを自然に含めてください。
+3. 指定スタイル（{visual_style}）を表現するのに最適なカメラワークや質感のキーワードを盛り込み、高精細かつアーティスティックな英語のプロンプト（約100〜150ワード程度）に仕上げてください。
+4. 出力は、生成された「英語の画像プロンプトのみ」を返してください。それ以外の挨拶文や説明、マークダウンのコードブロックは一切含めないでください。
+"""
+
+    try:
+        response = model.generate_content(prompt)
+        return response.text.strip().replace('`', '')
+    except Exception as e:
+        print(f"Failed to generate test image prompt: {e}")
+        return None
+
 # =====================================================================
 # 【ステップ2: コンテ制作フェーズ (トップダウン流し込み)】
 # =====================================================================
