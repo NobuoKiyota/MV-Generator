@@ -123,7 +123,7 @@ class XlsxGeneratorApp:
 
         # コンセプト生成ボタン
         self.btn_gen_concept = ttk.Button(self.tab_concept, text="🎨 STEP 1: ビジュアル設定（世界観・キャラ）をAI自動生成", command=self.start_concept_thread)
-        self.btn_gen_concept.grid(row=10, column=0, columnspan=2, fill=tk.X, ipady=4, pady=(0, 15))
+        self.btn_gen_concept.grid(row=10, column=0, columnspan=2, sticky="ew", ipady=4, pady=(0, 15))
 
         # 設定出力・手動修正エリア
         lbl_result_frame = ttk.LabelFrame(self.tab_concept, text=" 📝 AI提案設定図 (人間が直接修正して決定できます) ", padding="10")
@@ -199,7 +199,7 @@ class XlsxGeneratorApp:
 
         # タイムライン生成実行ボタン
         self.btn_gen_timeline = ttk.Button(self.tab_timeline, text="🎵 STEP 2: 世界観が統一されたタイムラインを構築し、Excel (.xlsx) を保存", command=self.start_timeline_thread)
-        self.btn_gen_timeline.grid(row=3, column=0, columnspan=2, fill=tk.X, ipady=6, pady=10)
+        self.btn_gen_timeline.grid(row=3, column=0, columnspan=2, sticky="ew", ipady=6, pady=10)
         
         # ガイドメッセージ
         lbl_guide = ttk.Label(self.tab_timeline, text="※まずタブ1でコンセプト設定を作成・編集してから、このボタンを押してください。\nタブ1で確定されたキャラクタービジュアルやカラーパレットがすべてのカットプロンプトへ自動流し込みされます。", font=("Meiryo UI", 9, "italic"), justify=tk.LEFT)
