@@ -51,7 +51,7 @@ def get_lyrics_lines_with_sections(raw_lyrics):
         lyrics_text = sec["lyrics"]
         lines = [l.strip() for l in lyrics_text.split("\n") if l.strip()]
         
-        # 歌詞が空の場合はダミー行を1つ置く (インストセクションなど)
+        # 歌詞が空の場合はダミー行を1つ置く
         if not lines:
             line_list.append({"section": sec_name, "line": ""})
         else:
@@ -72,12 +72,10 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
         return None
 
     # 1. MIDI全イベントを絶対秒数に解決してノートオンを抽出
-    notes = [] # (start_time, end_time, note_number)
+    notes = [] 
     active_notes = {}
     current_time = 0.0
-    
-    # マーカー情報（もしあればセクション名アライメントに使用）
-    markers = [] # (time, label)
+    markers = [] 
     
     for msg in mid:
         current_time += msg.time
@@ -89,15 +87,12 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
             if msg.note in active_notes:
                 start_time = active_notes.pop(msg.note)
                 end_time = current_time
-                # 極端に短いノイズ音符（0.05秒以下）は無視
                 if end_time - start_time > 0.05:
                     notes.append((start_time, end_time, msg.note))
 
-    # ノートを時系列ソート
     notes.sort(key=lambda x: x[0])
     
-    # 2. 発音タイミングを「休符（無音区間）」で区切り、フレーズ（グループ）を抽出
-    # ノート同士の間が 1.5 秒以上空いた場合、別フレーズ（カット）とする
+    # 2. 発音タイミングを「休符（無音区間）」で区切る (1.5秒以上の休符)
     phrase_groups = []
     if notes:
         current_group = [notes[0]]
@@ -116,7 +111,6 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
     for gp in phrase_groups:
         start_time = gp[0][0]
         end_time = gp[-1][1]
-        # バッファ（歌い出しの前後に0.2秒の余白を設ける）
         start_time = max(0.0, start_time - 0.2)
         end_time = min(duration, end_time + 0.2)
         midi_phrases.append({"start_time": round(start_time, 3), "end_time": round(end_time, 3)})
@@ -130,10 +124,8 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
     # 前奏区間の追加 (最初の音符が始まるまで)
     first_singing_time = midi_phrases[0]["start_time"] if midi_phrases else 0.0
     if first_singing_time > 1.0:
-        # マーカーからIntroセクションのラベル名があれば使う
         intro_label = "Intro"
         if markers:
-            # 最初のマーカーが歌い出しより前ならそのテキストを使用
             if markers[0][0] < first_singing_time:
                 intro_label = markers[0][1]
         timeline_slots.append({
@@ -148,7 +140,6 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
     num_lyrics_lines = len(lyrics_lines)
     
     if num_lyrics_lines == 0:
-        # 歌詞がない場合はMIDIのフレーズをそのままインストカットにする
         for i, phrase in enumerate(midi_phrases):
             timeline_slots.append({
                 "section": f"Instrumental {i+1}",
@@ -157,11 +148,8 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
                 "lyrics": ""
             })
     else:
-        # 歌詞行とMIDIフレーズの同期マッピング
-        # 基本的に1対1でマッピングするが、数が合わない場合は補正
         for idx in range(max(num_midi_phrases, num_lyrics_lines)):
             if idx < num_midi_phrases and idx < num_lyrics_lines:
-                # 1対1マッチ
                 phrase = midi_phrases[idx]
                 lyr_info = lyrics_lines[idx]
                 timeline_slots.append({
@@ -171,7 +159,6 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
                     "lyrics": lyr_info["line"]
                 })
             elif idx < num_midi_phrases:
-                # 歌詞が足りない場合: 残りはインストにする
                 phrase = midi_phrases[idx]
                 timeline_slots.append({
                     "section": "Instrumental/Solo",
@@ -180,7 +167,6 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
                     "lyrics": ""
                 })
             elif idx < num_lyrics_lines:
-                # MIDI音符が足りない場合: 最後の音符以降に順次4秒間隔などで割り当てる
                 last_end = timeline_slots[-1]["end_time"] if timeline_slots else 0.0
                 lyr_info = lyrics_lines[idx]
                 start = round(last_end, 3)
@@ -193,13 +179,11 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
                         "lyrics": lyr_info["line"]
                     })
 
-    # カット間の「隙間」を埋める (小節グリッドまたはシームレス接続)
-    # カットとカットの間の無音区間を自動で繋ぐ
+    # カット間の「隙間」を埋める
     seamless_slots = []
     for i in range(len(timeline_slots)):
         current_slot = timeline_slots[i]
         
-        # 最初のスロットが0.0秒から始まっていない場合
         if i == 0 and current_slot["start_time"] > 0.0:
             seamless_slots.append({
                 "section": "Intro",
@@ -210,21 +194,19 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
             
         seamless_slots.append(current_slot)
         
-        # 次のスロットとの間に隙間があるかチェック
         if i < len(timeline_slots) - 1:
             next_slot = timeline_slots[i+1]
             gap = next_slot["start_time"] - current_slot["end_time"]
-            if gap > 0.5: # 0.5秒以上の隙間があれば、間奏・無音カットを作る
+            if gap > 0.5:
                 seamless_slots.append({
                     "section": "Interlude",
                     "start_time": current_slot["end_time"],
                     "end_time": next_slot["start_time"],
                     "lyrics": ""
                 })
-            elif gap > 0.0: # 極小の隙間なら前のカットを後ろに伸ばして繋ぐ
+            elif gap > 0.0:
                 current_slot["end_time"] = next_slot["start_time"]
 
-    # 最後のカットを曲の終端 (duration) まで引き伸ばす
     if seamless_slots and seamless_slots[-1]["end_time"] < duration:
         last_slot = seamless_slots[-1]
         if last_slot["lyrics"] == "":
@@ -237,7 +219,6 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
                 "lyrics": ""
             })
 
-    # 重複や逆転などのバグをクリーンアップ
     valid_slots = []
     for slot in seamless_slots:
         if slot["end_time"] > slot["start_time"]:
@@ -245,35 +226,13 @@ def align_lyrics_with_midi(midi_path, raw_lyrics, duration):
             
     return valid_slots
 
-def save_project(filepath, data):
-    """プロジェクトデータをJSONファイルとして保存する"""
-    try:
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        return True
-    except Exception as e:
-        print(f"Error saving project: {e}")
-        return False
-
-def load_project(filepath):
-    """プロジェクトデータをJSONファイルから読み込む"""
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Error loading project: {e}")
-        return None
-
 def analyze_audio(audio_path):
     """音声ファイルを解析してBPMと曲の長さを返す"""
     try:
         y, sr = librosa.load(audio_path, sr=None)
         duration = librosa.get_duration(y=y, sr=sr)
-        
-        # BPMの推定
         tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
         
-        # テンポ（BPM）はfloatまたはarrayで返るため数値に変換
         if isinstance(tempo, (list, tuple, bytes, dict)) or hasattr(tempo, '__iter__'):
             bpm = float(tempo[0]) if len(tempo) > 0 else 120.0
         else:
@@ -287,10 +246,14 @@ def analyze_audio(audio_path):
         print(f"Error analyzing audio: {e}")
         return None
 
-def generate_initial_timeline(lyrics, bpm, duration, core_concept="", global_rules="", section_rules="", keywords="", api_key=None,
-                              first_bar_offset=0.0, time_signature="4/4", split_unit="4小節ごと",
-                              visual_style="特になし", aspect_ratio="16:9", audio_path=None, midi_path=None):
-    """Gemini APIを呼び出し、音源・歌詞・テンポ・MIDIから、世界観、演出ルール、および同期したタイムライン・プロンプトを全自動生成する"""
+# =====================================================================
+# 【ステップ1: 設定制作フェーズ】
+# =====================================================================
+def generate_concept_settings(lyrics, bpm, duration, raw_idea="", api_key=None, audio_path=None):
+    """
+    楽曲の歌詞、BPM、長さ、およびユーザーのラフ要望から、
+    AIが「世界観・コンセプト」「キャラクター設定」「色彩・演出ルール」の全体設定を設計・提案する
+    """
     if api_key:
         genai.configure(api_key=api_key)
     elif os.environ.get("GEMINI_API_KEY"):
@@ -300,155 +263,151 @@ def generate_initial_timeline(lyrics, bpm, duration, core_concept="", global_rul
 
     model = genai.GenerativeModel('gemini-2.5-flash')
     
-    # 1. MIDIファイルがある場合は、ローカルの超精密アライメントを実行
-    timeline_slots = None
-    if midi_path and os.path.exists(midi_path):
-        print(f"[INFO] MIDI alignment mode activated: {midi_path}")
-        timeline_slots = align_lyrics_with_midi(midi_path, lyrics, duration)
-        
-    # 2. MIDIがない場合は、歌詞を単純パースしたリストを作る
-    if timeline_slots is None:
-        print("[INFO] Fallback to standard text timeline mode.")
-        structured_lyrics = parse_tagged_lyrics(lyrics)
-        lyrics_json_str = json.dumps(structured_lyrics, indent=2, ensure_ascii=False)
-    else:
-        lyrics_json_str = json.dumps(timeline_slots, indent=2, ensure_ascii=False)
-    
-    # 拍子から1小節あたりの拍数を取得
-    try:
-        beats_per_bar = int(time_signature.split('/')[0])
-    except Exception:
-        beats_per_bar = 4
-        
-    beat_duration = 60.0 / bpm
-    bar_duration = beat_duration * beats_per_bar
-    
-    # 世界観コンセプトなどが空の場合のAI自動生成指示
-    concept_instruction = ""
-    if not core_concept:
-        concept_instruction = """
-- 【最優先】世界観・キャラクター設定が未指定のため、あなたが楽曲の歌詞や【音声データの雰囲気・ジャンル】から、最もクリエイティブで魅力的な「世界観・コンセプト」および「キャラクター設定」を自発的に想像して自動設計してください。
-- 提案する「プロジェクトのタイトル（曲名ベース）」「世界観・コンセプト」「キャラクター設定」を、出力JSONの `summary` オブジェクトに格納してください。
-- すべてのカットプロンプトは、この自動設計した世界観とキャラクター描写を一貫して崩さないように強力に維持してください。
-"""
-    else:
-        concept_instruction = f"""
-- 世界観・キャラクター設定:
-\"\"\"
-{core_concept}
-\"\"\"
-上記の設定を厳格に維持し、プロンプトに反映してください。
-"""
-
-    rules_instruction = ""
-    if not global_rules:
-        rules_instruction = """
-- 【優先】全体の演出ルールが未指定のため、あなたが楽曲の盛り上がり（イントロからサビ、アウトロ等）に合わせて、カメラワークや色彩設計、カット割りのテンポ感といった「全体の演出ルール」を自発的に設計し、出力JSONの `summary.rules` に格納してください。
-"""
-    else:
-        rules_instruction = f"""
-- 全体演出ルール / 盛り上がり制御:
-\"\"\"
-{global_rules}
-\"\"\"
-上記の演出ルールを反映させてください。
-"""
-
-    # MIDIありとなしでプロンプトを分岐
-    if timeline_slots is not None:
-        # MIDI同期枠がすでにある場合: 時間は完全固定。AIは演出とプロンプトだけを埋める。
-        prompt = f"""
-あなたはプロのミュージックビデオ(MV)監督および映像プランナーです。
-入力データとして渡された【時間と歌詞が確定済みのタイムライン枠】に対し、指定の世界観・演出ルールに沿った具体的な【演出・カメラワーク（日本語）】と【画像生成プロンプト（英語）】を考えて、タイムラインを完成させてください。
+    prompt = f"""
+あなたはプロのミュージックビデオ(MV)監督およびビジュアルデザイナーです。
+入力された楽曲データとユーザーのラフアイデアから、MV全体の根底となる「世界観」「キャラクターデザイン」「共通色彩設計」を高度に設計・提案してください。
 
 【入力データ】
-- 確定済みのタイムライン枠 (start_time と end_time、歌詞は完全に固定されており変更不可):
-```json
-{lyrics_json_str}
-```
+- 歌詞:
+\"\"\"
+{lyrics}
+\"\"\"
 - テンポ (BPM): {bpm}
 - 全体の長さ: {duration}秒
-- アスペクト比: {aspect_ratio}
-- 指定ビジュアルスタイル: {visual_style}
-
-【世界観・演出設計指示】
-{concept_instruction}
-{rules_instruction}
-{f"- セクション個別ルール: {section_rules}" if section_rules else ""}
-{f"- キーワード: {keywords}" if keywords else ""}
+- ユーザーのビジュアル要望・ラフイメージ: "{raw_idea if raw_idea else "特になし (歌詞と雰囲気から自動提案)"}"
 
 【設計の条件】
-1. 渡されたJSONの各スロットの `start_time`、`end_time`、`section`、`lyrics` は一切変更しないでください。
-2. 各カットの歌詞とタイミングに完璧にフィットする、魅力的な【映像演出説明 (description)】（日本語）と、画像生成AI用の具体的かつ高品質な【画像生成プロンプト (prompt)】（英語）をあなたが考えて、JSONの空欄部分を埋めてください。
-3. 指定されたアスペクト比「{aspect_ratio}」およびスタイル「{visual_style}」を強くプロンプトに反映させてください。
+1. この設定は、後続の「各カットの画像生成プロンプト」に共通で強制適用される「マスター設定図」となります。
+2. そのため、以下の各項目は具体的かつ、後の画像生成AI (Imagen 3 等) が解釈して一貫性を保てるように視覚的（Visual）に記述してください。
+   - 提案タイトル: 楽曲のコンセプトを表現するビジュアルタイトル。
+   - 世界観・コンセプト設定: 背景の建築様式、ライティング、空気感、季節、時間帯など。
+   - キャラクター詳細設定: 主人公等の性別、推定年齢、髪型・髪色、目の色、服装（色や素材も詳細に）、表情の傾向など。
+   - 色彩設計と演出ルール: カラーパレット（色彩の統一感、基調とする色）、映像のカメラワーク・質感（シネマティック、手持ちカメラ、アニメ風など）。
 
 必ず以下のJSONスキーマに従って結果を返してください。JSON以外の文章は一切出力しないでください。
 
 【出力フォーマット (JSON)】
 {{
-  "bpm": {bpm},
-  "duration": {duration},
-  "summary": {{
-    "title": "AIが自動提案するこの楽曲のプロジェクトタイトル（日本語または英語）",
-    "concept": "AIが自動設計した世界観・コンセプト設定（日本語、200〜300文字程度）",
-    "characters": "AIが自動設計したキャラクター設定（日本語、100〜200文字程度）",
-    "rules": "AIが自動設計した全体の演出ルール / 盛り上がり制御（日本語、100〜200文字程度）"
-  }},
-  "timeline": [
-    // 入力と同じ順序・数で、descriptionとpromptが充填されたタイムライン
-    {{
-      "section": "セクション名",
-      "start_time": 0.0,
-      "end_time": 10.0,
-      "lyrics": "歌詞の一節",
-      "description": "演出・カメラワークの詳細な日本語説明",
-      "prompt": "Highly detailed image generation prompt in English, matching the style and rules"
-    }}
-  ]
+  "title": "提案するプロジェクトタイトル（日本語または英語）",
+  "concept": "自動設計した世界観・コンセプト設定（背景やライティングなどの視覚的詳細、日本語、200〜300文字程度）",
+  "characters": "自動設計したキャラクターデザイン（髪型、服装、色などの視覚的詳細、日本語、200〜300文字程度）",
+  "rules": "自動設計した全体の色彩パレット ＆ 共通演出トーン（基調色やカメラワークの質感、日本語、150〜200文字程度）"
 }}
 """
+
+    contents = []
+    audio_file_ref = None
+    
+    if audio_path and os.path.exists(audio_path):
+        print(f"[INFO] Concept phase: Uploading audio file to Gemini API: {audio_path}")
+        try:
+            audio_file_ref = genai.upload_file(path=audio_path)
+            contents.append(audio_file_ref)
+            print("[INFO] Audio upload completed.")
+        except Exception as e:
+            print(f"[WARNING] Failed to upload audio: {e}")
+
+    contents.append(prompt)
+
+    try:
+        response = model.generate_content(
+            contents,
+            generation_config={
+                "response_mime_type": "application/json",
+                "temperature": 0.4
+            }
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"Failed to parse Gemini response as JSON in Concept Phase: {e}")
+        return None
+    finally:
+        if audio_file_ref:
+            try:
+                genai.delete_file(audio_file_ref.name)
+            except:
+                pass
+
+# =====================================================================
+# 【ステップ2: コンテ制作フェーズ (トップダウン流し込み)】
+# =====================================================================
+def generate_timeline_from_concept(lyrics, bpm, duration, concept_summary, api_key=None,
+                                   first_bar_offset=0.0, time_signature="4/4",
+                                   visual_style="特になし", aspect_ratio="16:9",
+                                   audio_path=None, midi_path=None):
+    """
+    確定したコンセプト設定図をベースにして、MIDI（あれば）と歌詞から
+    世界観が完全に統一されたカットタイムライン（プロンプト付き）を自動構築する
+    """
+    if api_key:
+        genai.configure(api_key=api_key)
+    elif os.environ.get("GEMINI_API_KEY"):
+        genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
     else:
-        # MIDIがない場合: 従来の標準モード（AIによる時間割作成、ただしBPMスナップ指示付き）
-        prompt = f"""
+        raise ValueError("Gemini API key is not configured.")
+
+    model = genai.GenerativeModel('gemini-2.5-flash')
+    
+    # 1. MIDIによるローカル精密アライメント
+    timeline_slots = None
+    if midi_path and os.path.exists(midi_path):
+        print(f"[INFO] MIDI alignment mode: {midi_path}")
+        timeline_slots = align_lyrics_with_midi(midi_path, lyrics, duration)
+        
+    if timeline_slots is None:
+        print("[INFO] Text-based fallback mode.")
+        structured_lyrics = parse_tagged_lyrics(lyrics)
+        lyrics_json_str = json.dumps(structured_lyrics, indent=2, ensure_ascii=False)
+    else:
+        lyrics_json_str = json.dumps(timeline_slots, indent=2, ensure_ascii=False)
+        
+    beat_duration = 60.0 / bpm
+    bar_duration = beat_duration * 4 # 4/4前提の標準1小節
+    
+    # コンセプトテキストのパース
+    title = concept_summary.get("title", "Song Project")
+    concept_desc = concept_summary.get("concept", "")
+    character_desc = concept_summary.get("characters", "")
+    rules_desc = concept_summary.get("rules", "")
+
+    # プロンプトの組み立て (トップダウン指示)
+    prompt = f"""
 あなたはプロのミュージックビデオ(MV)監督および映像プランナーです。
-入力データと制約事項を元に、曲全体の「世界観」「キャラクター設定」「演出ルール」を自動設計し、さらにそれに完璧に同期した「タイムライン（カット割り）」を高度に設計してください。
+ステップ1で決定した【MVのマスタービジュアル設定】を「絶対の前提」として固定し、各カットのタイムライン（コンテ）を作成してください。
+
+【MVのマスタービジュアル設定 (世界観の統一規格)】
+- タイトル: "{title}"
+- 世界観コンセプト: 
+\"\"\"
+{concept_desc}
+\"\"\"
+- キャラクタービジュアル設定: 
+\"\"\"
+{character_desc}
+\"\"\"
+- 色彩設計と演出共通ルール: 
+\"\"\"
+{rules_desc}
+\"\"\"
 
 【入力データ】
-- 構造化された歌詞リスト (セクションごとの分割):
+- タイムライン枠組み (start_time と end_time、および歌詞):
 ```json
 {lyrics_json_str}
 ```
 - テンポ (BPM): {bpm}
 - 全体の長さ: {duration}秒
 - 1小節目の開始時間 (オフセット秒): {first_bar_offset}秒
-- 拍子: {time_signature} (1拍の長さ: {beat_duration:.4f}秒, 1小節の長さ: {bar_duration:.4f}秒)
 - アスペクト比: {aspect_ratio}
 - 指定ビジュアルスタイル: {visual_style}
 
-【音声データの解析指示 (最重要)】
-- あなたに入力として渡された音声データを実際に「聴いて」、以下の音楽的特徴を正確に解析してください。
-  1. ボーカルが実際に歌い出すタイミング（何秒から声が入るか）。
-  2. Aメロ、Bメロ、サビ（Chorus）などの各セクションが物理的な秒数（何秒から盛り上がるか、何秒から静かになるか）。
-  3. 各歌詞テキストが歌われている正確なタイミング（アライメント）。
-- 解析した物理的な歌い出しや展開のタイミングに同期させて、各カットの開始時間（start_time）および終了時間（end_time）を決定してください。
-
-【世界観・演出設計指示】
-{concept_instruction}
-{rules_instruction}
-{f"- セクション個別ルール: {section_rules}" if section_rules else ""}
-{f"- キーワード: {keywords}" if keywords else ""}
-
-【設計の条件】
-1. 人間が指定した「構造化された歌詞リスト」の各セクションの並び順と構造を必ず遵守してください。
-2. 曲全体の長さ（0.0秒から{duration}秒まで）をカバーするようにタイムラインを定義し、いくつかの「カット（Cut）」に分割してください。
-3. 各カットの開始・終了時間は、実際の展開タイミングを基準としつつ、できるだけBPM {bpm} に基づく「1小節 = {bar_duration:.3f}秒」の境界線（グリッド）にスナップ（四捨五入などの補正）させて、音楽的に気持ちの良い切り替えにしてください。
-4. 各カットに対して、以下を設計してください。
-   - section: セクション名
-   - start_time: カット開始秒数 (0.0 からスタート)
-   - end_time: カット終了秒数 (最後は必ず {duration} 秒になるように)
-   - lyrics: そのカットに対応する歌詞（そのタイミングで実際に歌われている歌詞フレーズ、インストの場合は空文字 ""）
-   - description: 演出・カメラワークの詳細な日本語説明
-   - prompt: 後の画像生成AI (Imagen 3等) で入力するための、具体的かつ高品質な英語の画像生成プロンプト。指定されたアスペクト比「{aspect_ratio}」およびスタイル「{visual_style}」を強く反映させ、世界観・キャラクター・ルールを高度にブレンドしてください。
+【設計・展開の条件 (世界観の統一化)】
+1. 渡されたJSONの各スロットの `start_time`、`end_time`、`section`、`lyrics` は一切変更しないでください。
+2. 【プロンプトへのトップダウン流し込み】
+   - 各カットに設定する画像生成プロンプト（`prompt`：英語）には、上記の『キャラクタービジュアル設定（髪型、目の色、服装など）』および『世界観コンセプト（背景、ライティング）』、『色彩設計』の要素を、**すべてのプロンプトに必ず漏れなく埋め込んでください。**
+   - カット間でキャラクターの見た目（服装や髪）や、背景のビジュアルトーン、カラーパレットが絶対にブレないようにしてください。
+3. 各カットの歌詞とタイミングに完璧にフィットする、魅力的な【映像演出説明 (description)】（日本語）と、画像生成AI用の具体的かつ高品質な【画像生成プロンプト (prompt)】（英語）をあなたが考えて、JSONの空欄部分を埋めてください。
+4. 指定されたスタイル「{visual_style}」およびアスペクト比「{aspect_ratio}」をプロンプト内に自然に、かつ強力に反映させてください。
 
 必ず以下のJSONスキーマに従って結果を返してください。JSON以外の文章は一切出力しないでください。
 
@@ -457,19 +416,19 @@ def generate_initial_timeline(lyrics, bpm, duration, core_concept="", global_rul
   "bpm": {bpm},
   "duration": {duration},
   "summary": {{
-    "title": "AIが自動提案するこの楽曲 of プロジェクトタイトル",
-    "concept": "AIが自動設計した世界観・コンセプト設定",
-    "characters": "AIが自動設計したキャラクター設定",
-    "rules": "AIが自動設計した全体の演出ルール / 盛り上がり制御"
+    "title": "{title}",
+    "concept": "{concept_desc}",
+    "characters": "{character_desc}",
+    "rules": "{rules_desc}"
   }},
   "timeline": [
     {{
       "section": "セクション名",
       "start_time": 0.0,
-      "end_time": {first_bar_offset if first_bar_offset > 0 else bar_duration},
-      "lyrics": "歌詞の一節（あれば）",
-      "description": "演出・カメラワークの詳細な日本語説明",
-      "prompt": "Highly detailed image generation prompt in English, matching the style and rules"
+      "end_time": 10.0,
+      "lyrics": "歌詞の一節",
+      "description": "演出・カメラワークの詳細な日本語説明（色彩設計や共通演出を反映）",
+      "prompt": "Highly detailed image generation prompt in English, including character details and color rules for consistency"
     }}
   ]
 }}
@@ -478,15 +437,13 @@ def generate_initial_timeline(lyrics, bpm, duration, core_concept="", global_rul
     contents = []
     audio_file_ref = None
     
-    # 音声ファイルが指定されている場合はアップロードして入力に含める
     if audio_path and os.path.exists(audio_path):
-        print(f"[INFO] Uploading audio file to Gemini API: {audio_path}")
+        print(f"[INFO] Timeline phase: Uploading audio file to Gemini API: {audio_path}")
         try:
             audio_file_ref = genai.upload_file(path=audio_path)
             contents.append(audio_file_ref)
-            print("[INFO] Audio upload completed.")
         except Exception as e:
-            print(f"[WARNING] Failed to upload audio file to Gemini: {e}. Falling back to text-only generation.")
+            print(f"[WARNING] Failed to upload audio: {e}")
 
     contents.append(prompt)
 
@@ -501,8 +458,7 @@ def generate_initial_timeline(lyrics, bpm, duration, core_concept="", global_rul
         
         result_json = json.loads(response.text)
         
-        # もしMIDIアライメント結果を渡していた場合、AIが万が一秒数を変えてしまっていたら
-        # ローカル側の厳密な秒数(timeline_slots)で上書き強制補正する (安全策)
+        # 安全策: MIDI同期枠があれば時間をローカルデータで上書き強制補正
         if timeline_slots is not None and result_json and "timeline" in result_json:
             for idx, slot in enumerate(result_json["timeline"]):
                 if idx < len(timeline_slots):
@@ -512,18 +468,44 @@ def generate_initial_timeline(lyrics, bpm, duration, core_concept="", global_rul
                     slot["lyrics"] = timeline_slots[idx]["lyrics"]
                     
         return result_json
-    except json.JSONDecodeError as e:
-        print(f"Failed to parse Gemini response as JSON: {e}")
-        print("Raw response:", response.text)
+    except Exception as e:
+        print(f"Failed to parse Gemini response as JSON in Timeline Phase: {e}")
         return None
     finally:
-        # アップロードした音声ファイルをクリーンアップして削除
         if audio_file_ref:
             try:
-                print(f"[INFO] Deleting audio file from Gemini API: {audio_file_ref.name}")
                 genai.delete_file(audio_file_ref.name)
-            except Exception as e:
-                print(f"[WARNING] Failed to delete file from Gemini API: {e}")
+            except:
+                pass
+
+# =====================================================================
+# 【レガシー互換用】 
+# =====================================================================
+def generate_initial_timeline(lyrics, bpm, duration, core_concept="", global_rules="", section_rules="", keywords="", api_key=None,
+                              first_bar_offset=0.0, time_signature="4/4", split_unit="4小節ごと",
+                              visual_style="特になし", aspect_ratio="16:9", audio_path=None, midi_path=None):
+    """
+    旧GUIや互換性のために残す1発生成関数。
+    内部でステップ1（コンセプト自動生成）を行い、そのままステップ2（タイムライン生成）を実行して返す。
+    """
+    # 1. コンセプト生成
+    concept = generate_concept_settings(
+        lyrics=lyrics, bpm=bpm, duration=duration, raw_idea=core_concept, api_key=api_key, audio_path=audio_path
+    )
+    if not concept:
+        concept = {
+            "title": "My Song Project",
+            "concept": core_concept if core_concept else "A beautiful music video.",
+            "characters": "A protagonist.",
+            "rules": global_rules if global_rules else "Cinematic visual tone."
+        }
+    
+    # 2. タイムライン生成
+    return generate_timeline_from_concept(
+        lyrics=lyrics, bpm=bpm, duration=duration, concept_summary=concept, api_key=api_key,
+        first_bar_offset=first_bar_offset, time_signature=time_signature,
+        visual_style=visual_style, aspect_ratio=aspect_ratio, audio_path=audio_path, midi_path=midi_path
+    )
 
 def refine_image_prompt(current_prompt, user_feedback, api_key=None):
     """
@@ -540,7 +522,7 @@ def refine_image_prompt(current_prompt, user_feedback, api_key=None):
     model = genai.GenerativeModel('gemini-2.5-flash')
     
     prompt = f"""
-    あなたは画像生成AI (Imagen 3/4) 用のプロンプトエンジニアです。
+    あなたは画像生成AI (Imagen 3/4) 用 of プロンプトエンジニアです。
     ユーザーが作成しているミュージックビデオ(MV)の1カットの画像プロンプトを、ユーザーからの修正指示に基づいてブラッシュアップしてください。
 
     【現在のプロンプト (英語)】
@@ -564,7 +546,6 @@ def export_project_zip(project_name, timeline_data, bpm, duration, audio_path, i
     """
     temp_dir = tempfile.mkdtemp()
     try:
-        # 1. JSONの作成
         export_data = {
             "project_name": project_name,
             "bpm": bpm,
@@ -575,12 +556,10 @@ def export_project_zip(project_name, timeline_data, bpm, duration, audio_path, i
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(export_data, f, indent=2, ensure_ascii=False)
             
-        # 2. 音源のコピー
         if audio_path and os.path.exists(audio_path):
             audio_ext = os.path.splitext(audio_path)[1]
             shutil.copy(audio_path, os.path.join(temp_dir, f"audio{audio_ext}"))
             
-        # 3. 画像のコピー
         zip_images_dir = os.path.join(temp_dir, "images")
         os.makedirs(zip_images_dir, exist_ok=True)
         if images_dir and os.path.exists(images_dir):
@@ -588,11 +567,9 @@ def export_project_zip(project_name, timeline_data, bpm, duration, audio_path, i
                 if filename.endswith(".png") and not filename.startswith("temp_"):
                     shutil.copy(os.path.join(images_dir, filename), os.path.join(zip_images_dir, filename))
                     
-        # 4. ZIP化
         zip_path = os.path.join(temp_dir, f"{project_name}_package")
         shutil.make_archive(zip_path, 'zip', temp_dir)
         
-        # 5. バイナリの読み込み
         with open(zip_path + ".zip", "rb") as f:
             zip_bytes = f.read()
             
@@ -607,11 +584,9 @@ def import_project_zip(zip_file, extract_dir, images_target_dir):
     os.makedirs(extract_dir, exist_ok=True)
     os.makedirs(images_target_dir, exist_ok=True)
     
-    # メモリ上のZIPを展開
     with zipfile.ZipFile(zip_file, 'r') as zip_ref:
         zip_ref.extractall(extract_dir)
         
-    # project.json の読み込み
     json_path = os.path.join(extract_dir, "project.json")
     if not os.path.exists(json_path):
         raise ValueError("ZIP内に project.json が見つかりません。")
@@ -619,21 +594,19 @@ def import_project_zip(zip_file, extract_dir, images_target_dir):
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
         
-    # 音源の復元とパス設定
     audio_path = None
     for filename in os.listdir(extract_dir):
         if filename.startswith("audio."):
             target_audio_path = os.path.join(os.path.dirname(images_target_dir), filename)
-            shutil.copy(os.path.join(extract_dir, filename), target_audio_path)
+            shutil.copy(extract_dir + "/" + filename, target_audio_path)
             audio_path = target_audio_path
             break
             
-    # 画像の復元
     zip_images_dir = os.path.join(extract_dir, "images")
     if os.path.exists(zip_images_dir):
         for filename in os.listdir(zip_images_dir):
             if filename.endswith(".png"):
-                shutil.copy(os.path.join(zip_images_dir, filename), os.path.join(images_target_dir, filename))
+                shutil.copy(zip_images_dir + "/" + filename, images_target_dir + "/" + filename)
                 
     shutil.rmtree(extract_dir, ignore_errors=True)
     
@@ -651,7 +624,6 @@ def export_project_xlsx(project_name, timeline_data, bpm, duration, core_concept
     """
     プロジェクトデータをPandasとopenpyxlを使ってスタイリングされたExcelファイル（.xlsx）のバイナリデータとして返す。
     """
-    # 1. Summary シート用 DataFrame
     summary_data = {
         "項目": [
             "提案タイトル",
@@ -680,7 +652,6 @@ def export_project_xlsx(project_name, timeline_data, bpm, duration, core_concept
     }
     df_summary = pd.DataFrame(summary_data)
     
-    # 2. Timeline シート用 DataFrame
     timeline_rows = []
     for i, item in enumerate(timeline_data):
         timeline_rows.append({
@@ -697,7 +668,6 @@ def export_project_xlsx(project_name, timeline_data, bpm, duration, core_concept
         })
     df_timeline = pd.DataFrame(timeline_rows)
     
-    # メモリ上に出力
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df_summary.to_excel(writer, sheet_name="Summary", index=False)
@@ -705,9 +675,8 @@ def export_project_xlsx(project_name, timeline_data, bpm, duration, core_concept
         
         workbook = writer.book
         
-        # --- Summary シートの装飾 ---
         ws_summary = workbook["Summary"]
-        header_fill = PatternFill(start_color="1F497D", end_color="1F497D", fill_type="solid") # 濃い青
+        header_fill = PatternFill(start_color="1F497D", end_color="1F497D", fill_type="solid") 
         header_font = Font(name="Meiryo UI", size=11, bold=True, color="FFFFFF")
         cell_font = Font(name="Meiryo UI", size=10)
         
@@ -726,7 +695,6 @@ def export_project_xlsx(project_name, timeline_data, bpm, duration, core_concept
         ws_summary.column_dimensions["A"].width = 25
         ws_summary.column_dimensions["B"].width = 60
         
-        # --- Timeline シートの装飾 ---
         ws_timeline = workbook["Timeline"]
         
         for col in range(1, len(df_timeline.columns) + 1):
